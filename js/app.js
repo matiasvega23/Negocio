@@ -355,7 +355,9 @@ function pintarAvisoTemporada() {
   const cerradoHoy = f.dias === 0 && FERIADOS[hoy] === "cerrado";
   $("#aviso-temporada-texto").innerHTML = `${titulo ? `<strong>${esc(titulo)}</strong> ` : ""}${esc(cerradoHoy ? "Hoy la tienda está cerrada. Gracias por preferirnos." : f.texto)}`;
   const b = $("#aviso-temporada-boton");
-  b.textContent = f.boton; b.href = f.enlace; b.hidden = cerradoHoy;
+  const aWsp = f.enlace.startsWith("wsp:");
+  b.textContent = f.boton; b.href = aWsp ? wspUrl(f.enlace.slice(4)) : f.enlace; b.hidden = cerradoHoy;
+  if (aWsp) { b.target = "_blank"; b.rel = "noopener"; } else { b.removeAttribute("target"); b.removeAttribute("rel"); }
   caja.hidden = false;
 }
 

@@ -21,13 +21,15 @@ const FERIADOS = {
   "2027-10-31": "medio", "2027-11-01": "medio", "2027-12-08": "medio", "2027-12-25": "cerrado"
 };
 
+// Regla de la marca: nunca juntar lencería o ropa interior con niños en un mismo texto, imagen o filtro.
 // Aviso con cuenta regresiva (barra de arriba). Se muestra la fecha activa más cercana.
 // "fecha" = el día; "desde" = cuántos días antes empieza a aparecer.
+// "enlace" puede ser una sección (#regalo), un producto (?producto=ID) o "wsp:" + mensaje para abrir WhatsApp.
 // Para un período sin día fijo, usar "inicio" y "fin" en vez de "fecha" y "desde" (no muestra cuenta regresiva).
 const FECHAS_COMERCIALES = [
   { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Envolvemos tus regalos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
   { nombre: "el Día de los Enamorados", fecha: "2027-02-14", desde: 25, texto: "Conjuntos de lencería y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
-  { nombre: "Vuelta a clases", inicio: "2027-02-15", fin: "2027-03-15", texto: "Vuelta a clases: pantys escolares y calcetas para el colegio.", boton: "Ver pantys", enlace: "?producto=pantys" },
+  { nombre: "Vuelta a clases", inicio: "2027-02-15", fin: "2027-03-15", texto: "Vuelta a clases: pantys escolares y calcetas para el colegio.", boton: "Consultar por WhatsApp", enlace: "wsp:Hola Angie's Secret 👋 Busco pantys escolares. ¿Qué colores y tallas tienen?" },
   { nombre: "el Día de la Madre", fecha: "2027-05-09", desde: 30, texto: "Pijamas, lencería y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
   { nombre: "el Día del Padre", fecha: "2027-06-20", desde: 30, texto: "Pijamas, polares y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
   { nombre: "Navidad", fecha: "2027-12-25", desde: 60, texto: "Envolvemos tus regalos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" }
@@ -116,7 +118,7 @@ const PRODUCTOS = [
   { id: "calzas-pata-recta", n: "Calzas pata recta", para: ["mujer"], cat: "pantalones", t: "invierno", d: "Abrigadoras y versátiles, para el día a día.", tallas: SXXL, col: ["Azul marino", "Burdeo", "Gris", "Negro"], fotos: ["w-calza-recta"], afiches: ["3b8ba519"], k: "leggins" },
   { id: "calza-efecto-piel", n: "Calza efecto piel", para: ["mujer"], cat: "pantalones", t: "invierno", d: "Por fuera parece panty y por dentro es afelpada.", col: ["Negro", "Gris claro", "Marrón", "Gris oscuro"], fotos: ["w-calza-piel"], afiches: ["0c081564"], k: "panty termica polar" },
   { id: "pantalones-forrados", n: "Pantalones y buzos forrados", para: ["mujer"], cat: "pantalones", t: "invierno", d: "Estilo jeans, cargo y buzo, con interior térmico.", col: ["Burdeo", "Café", "Negro", "Gris oscuro"], fotos: ["w-pantalon-forrado"], afiches: ["6e288af9", "eb0bcc63"], k: "buzo jeans cargo" },
-  { id: "pantys", n: "Pantys de moda y escolares", para: ["mujer", "ninos"], cat: "pantalones", t: "todo", d: "Con puntos, malla, lisas elasticadas y de bambú. También pantys escolares: pregunta por colores.", tallas: ["Única", "Especial"], tallasTexto: "Talla única y talla especial", col: ["Negro", "Piel"], fotos: ["w-pantys"], afiches: ["180e3858"], k: "medias colegio escolar" },
+  { id: "pantys", n: "Pantys de moda y escolares", para: ["mujer"], cat: "pantalones", t: "todo", d: "Con puntos, malla, lisas elasticadas y de bambú. También pantys escolares: pregunta por colores.", tallas: ["Única", "Especial"], tallasTexto: "Talla única y talla especial", col: ["Negro", "Piel"], fotos: ["w-pantys"], afiches: ["180e3858"], k: "medias colegio escolar" },
   { id: "calzas-deportivas", n: "Calzas deportivas", para: ["mujer"], cat: "pantalones", t: "verano", d: "Textura panal y estampados de colores.", col: ["Turquesa", "Fucsia"], fotos: ["s-calzas-deportivas"], k: "leggins deporte" },
   { id: "pantalones-verano", n: "Pantalones frescos", para: ["mujer"], cat: "pantalones", t: "verano", d: "Floreados, cuadrillé y cargo, en telas livianas.", fotos: ["s-pantalones"], k: "palazzo" },
   { id: "pantalon-chiporro", n: "Pantalón con chiporro", para: ["hombre"], cat: "pantalones", t: "invierno", d: "Forro de chiporro, cintura con cordón y bolsillos con cierre.", tallas: SXXL, col: ["Negro", "Azul marino"], fotos: ["m-pantalon-chiporro"], afiches: ["43aced90"], k: "buzo" },
