@@ -1,0 +1,13 @@
+# Cabeceras de seguridad para Netlify (este archivo no se ve en el sitio).
+# Content-Security-Policy: el navegador solo ejecuta código que viene de este mismo sitio,
+#   y solo carga letras desde Google Fonts. Si alguien lograra inyectar código, no se ejecuta.
+# X-Frame-Options y frame-ancestors: nadie puede meter el sitio dentro de otra página para engañar.
+# X-Content-Type-Options: el navegador no "adivina" tipos de archivo.
+# Referrer-Policy: al salir a WhatsApp o Google Maps, solo se informa el dominio, no la página exacta.
+# Permissions-Policy: el sitio no pide cámara, micrófono, ubicación ni pagos.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
