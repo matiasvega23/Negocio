@@ -6,9 +6,22 @@ Sitio publicado: https://angiessecret.netlify.app
 
 ## Cómo se publica
 
-Cada cambio que se sube a la rama `main` de este repositorio se publica solo en Netlify, en uno o dos minutos. No hay que arrastrar zips.
+Hay dos ramas, y cada una tiene su propia dirección:
 
-Cada publicación gasta 15 de los 300 créditos mensuales del plan gratis de Netlify. Por eso se publica por lotes: **máximo 2 veces al mes** (primera semana y mitad de mes), salvo correcciones urgentes. Antes de publicar, el lote se revisa con la vista previa, que no gasta créditos.
+| Rama | Dirección | Para qué | Créditos de Netlify |
+|---|---|---|---|
+| `prueba` | https://prueba--angiessecret.netlify.app | Revisar el lote antes de publicarlo, en el celular o el computador | 0 |
+| `main` | https://angiessecret.netlify.app | El sitio que ven las clientas | 15 por publicación |
+
+Cada lote sigue estos pasos:
+
+1. Los cambios del lote se suben a `prueba`. Se pueden hacer todos los ajustes que hagan falta: no gastan créditos.
+2. La dueña y quien coordina revisan la dirección de prueba (textos, fotos, pedido por WhatsApp, regla de marca).
+3. Con el visto bueno, `prueba` se pasa a `main` una sola vez y el sitio real se actualiza en uno o dos minutos.
+
+El plan gratis de Netlify da 300 créditos por período, del día 26 de un mes al 25 del siguiente. Por eso se publica por lotes: **máximo 2 veces al mes** (primera semana y mitad de mes), salvo correcciones urgentes.
+
+La dirección de prueba es pública pero no se difunde. Le indica a Google que la página oficial es la del sitio real.
 
 ## Estructura
 
@@ -32,4 +45,4 @@ Cada publicación gasta 15 de los 300 créditos mensuales del plan gratis de Net
 
 ## Historial de versiones
 
-Cada versión es un cambio con su nombre en el historial ("Versión 2", "Versión 3", "Versión 4", "Versión 4.1", "Versión 4.2"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic.
+Cada versión es un cambio con su nombre en el historial ("Versión 2", "Versión 3", "Versión 4", "Versión 4.1", "Versión 4.2"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic, sin gastar créditos.
