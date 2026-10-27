@@ -32,4 +32,4 @@ Cada publicación gasta 15 de los 300 créditos mensuales del plan gratis de Net
 
 ## Historial de versiones
 
-Cada versión tiene su etiqueta (`v2`, `v3`, `v4`, `v4.1`, `v4.2`), así que se puede volver atrás si algo falla.
+Cada versión es un cambio con su nombre en el historial ("Versión 2", "Versión 3", "Versión 4", "Versión 4.1", "Versión 4.2"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic.
