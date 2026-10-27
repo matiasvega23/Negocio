@@ -21,6 +21,35 @@ const FERIADOS = {
   "2027-10-31": "medio", "2027-11-01": "medio", "2027-12-08": "medio", "2027-12-25": "cerrado"
 };
 
+// Aviso con cuenta regresiva (barra de arriba). Se muestra la fecha activa más cercana.
+// "fecha" = el día; "desde" = cuántos días antes empieza a aparecer.
+// Para un período sin día fijo, usar "inicio" y "fin" en vez de "fecha" y "desde" (no muestra cuenta regresiva).
+const FECHAS_COMERCIALES = [
+  { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Envolvemos tus regalos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "el Día de los Enamorados", fecha: "2027-02-14", desde: 25, texto: "Conjuntos de lencería y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Vuelta a clases", inicio: "2027-02-15", fin: "2027-03-15", texto: "Vuelta a clases: pantys escolares y calcetas para el colegio.", boton: "Ver pantys", enlace: "?producto=pantys" },
+  { nombre: "el Día de la Madre", fecha: "2027-05-09", desde: 30, texto: "Pijamas, lencería y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "el Día del Padre", fecha: "2027-06-20", desde: 30, texto: "Pijamas, polares y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Navidad", fecha: "2027-12-25", desde: 60, texto: "Envolvemos tus regalos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" }
+];
+
+// Productos que aparecen en "Arma tu regalo" (se filtran por temporada y por para quién es).
+const REGALOS = [
+  "conjuntos-lenceria", "pijamas-verano", "pijamas-afraneladas", "vestidos-largos", "vestidos-sueltos",
+  "vestido-cardigan", "blusas-verano", "sweater-afranelado", "chaleco-botones", "pijamas-hombre",
+  "poleron-polar", "poleron-lana", "camisa-polar", "sweater-hombre", "bufanda", "gorros-lana",
+  "calcetas-chiporro", "slip-boxer-hombre", "calcetas", "banano", "ropa-ninos"
+];
+
+// Tabla de tallas para la guía "¿Cuál es mi talla?".
+// Mientras sea null, la guía solo envía las medidas por WhatsApp y la tienda responde la talla.
+// Cuando la tienda tenga su tabla real (en centímetros), se llena así y el sitio sugiere la talla:
+// const TABLAS_TALLAS = {
+//   mujer:  [ { talla: "S", busto: [DESDE, HASTA], cintura: [DESDE, HASTA], cadera: [DESDE, HASTA] }, ... ],
+//   hombre: [ { talla: "S", busto: [DESDE, HASTA], cintura: [DESDE, HASTA] }, ... ]
+// };
+const TABLAS_TALLAS = null;
+
 const COLORES = {
   "Negro": "#1d1d1f", "Blanco": "#ffffff", "Azul marino": "#1f2a4d", "Gris": "#8a8d93", "Gris jaspeado": "#a3a5ab",
   "Gris claro": "#c9cbcf", "Gris oscuro": "#4a4d55", "Gris melange": "#9c9ea4", "Gris jaspe": "#8f9196", "Burdeo": "#7a1f33",

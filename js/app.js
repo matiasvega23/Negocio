@@ -125,6 +125,7 @@ function pintar() {
   u.searchParams.set("temporada", estado.temporada);
   estado.para === "todos" ? u.searchParams.delete("para") : u.searchParams.set("para", estado.para);
   try { history.replaceState(null, "", u); } catch (e) {}
+  pintarRegalo();
 }
 document.querySelectorAll("[data-temporada]").forEach(b => b.addEventListener("click", () => { estado.temporada = b.dataset.temporada; pintar(); }));
 document.querySelectorAll("[data-para]").forEach(b => b.addEventListener("click", () => { estado.para = b.dataset.para; pintar(); }));
@@ -141,7 +142,7 @@ function abrirProducto(id) {
   const tallas = p.tallas || null;
   $("#ficha").innerHTML = `
     <div class="galeria">
-      <div class="galeria-marco"><div class="galeria-principal" id="principal"><img id="img-principal" src="${imagenes[0].src}" alt="${esc(p.n)}"></div><button type="button" class="boton boton-borde boton-chico ampliar" id="ampliar" hidden>Ampliar</button></div>
+      <div class="galeria-marco"><div class="galeria-principal" id="principal"><img id="img-principal" src="${imagenes[0].src}" alt="${esc(p.n)}" draggable="false"></div>${imagenes.length > 1 ? `<button type="button" class="galeria-flecha anterior" data-paso="-1" aria-label="Foto anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-izq"/></svg></button><button type="button" class="galeria-flecha siguiente" data-paso="1" aria-label="Foto siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-der"/></svg></button><span class="galeria-contador" id="galeria-contador" aria-hidden="true">1 / ${imagenes.length}</span>` : ""}<button type="button" class="boton boton-borde boton-chico ampliar" id="ampliar" hidden>Ampliar</button></div>
       ${imagenes.length > 1 ? `<div class="miniaturas" role="group" aria-label="Fotos">${imagenes.map((im, i) => `<button type="button" data-i="${i}" aria-current="${i === 0}" aria-label="${im.tipo === "afiche" ? "Afiche con detalles" : "Foto " + (i + 1)}"><img src="${im.src}" alt="" loading="lazy">${im.tipo === "afiche" ? "<small>Afiche</small>" : ""}</button>`).join("")}</div>` : ""}
     </div>
     <div class="ficha-info">
@@ -151,6 +152,7 @@ function abrirProducto(id) {
       <form id="form-producto">
         ${tallas ? `<fieldset><legend>Talla</legend><div class="opciones">${[...tallas, "No sé mi talla"].map((t, i) => `<label class="opcion"><input type="radio" name="talla" value="${esc(t)}" ${tallas.length === 1 && i === 0 ? "checked" : ""}><span>${esc(t)}</span></label>`).join("")}</div></fieldset>`
                  : `<div class="campo"><label for="talla-libre">Talla (opcional)</label><input id="talla-libre" name="tallaLibre" placeholder="Ej: M, XL, 46"></div>`}
+        ${usaGuiaTallas(p) ? `<button type="button" class="boton-texto guia-tallas" data-guia-tallas="${p.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regla"/></svg>¿Cuál es mi talla?</button>` : ""}
         ${p.col && p.col.length ? `<fieldset><legend>Color</legend><div class="opciones">${p.col.map(c => `<label class="opcion"><input type="radio" name="color" value="${esc(c)}" ${p.col.length === 1 ? "checked" : ""}><span><i class="muestra" style="background:${COLORES[c] || "#ccc"}"></i>${esc(c)}</span></label>`).join("")}</div></fieldset>`
                  : `<div class="campo"><label for="color-libre">Color o modelo (opcional)</label><input id="color-libre" name="colorLibre" placeholder="Ej: el floreado azul"></div>`}
         <fieldset><legend>Cantidad</legend>
@@ -184,8 +186,10 @@ function abrirProducto(id) {
   f.addEventListener("submit", e => {
     e.preventDefault();
     const el = eleccion();
+    const desde = $("#img-principal").getBoundingClientRect();
     agregar({ id: p.id, n: p.n, foto: p.fotos[0], talla: el.talla, color: el.color, cantidad: actual.cantidad });
     $("#ventana-producto").close();
+    volarAlPedido(foto(p.fotos[0]), desde);
     avisar(`Agregado a tu pedido: ${p.n}`);
   });
   $("#compartir").addEventListener("click", async () => {
@@ -196,18 +200,43 @@ function abrirProducto(id) {
       else { await navigator.clipboard.writeText(datos.url); avisar("Enlace copiado"); }
     } catch (err) {}
   });
-  const principal = $("#principal");
-  $("#ampliar").addEventListener("click", ev => { const a = principal.classList.toggle("ampliado"); ev.currentTarget.textContent = a ? "Ver completo" : "Ampliar"; });
-  document.querySelectorAll("#ficha .miniaturas button").forEach(b => b.addEventListener("click", () => {
-    const im = imagenes[+b.dataset.i];
-    $("#img-principal").src = im.src;
+  const principal = $("#principal"), imgP = $("#img-principal");
+  let vista = 0;
+  const mostrar = i => {
+    vista = (i + imagenes.length) % imagenes.length;
+    const im = imagenes[vista];
+    imgP.src = im.src;
+    imgP.classList.remove("zoom");
     principal.classList.toggle("es-afiche", im.tipo === "afiche");
     principal.classList.remove("ampliado");
     principal.scrollTop = 0; principal.scrollLeft = 0;
     $("#ampliar").hidden = im.tipo !== "afiche";
     $("#ampliar").textContent = "Ampliar";
-    document.querySelectorAll("#ficha .miniaturas button").forEach(x => x.setAttribute("aria-current", x === b));
-  }));
+    const c = $("#galeria-contador"); if (c) c.textContent = `${vista + 1} / ${imagenes.length}`;
+    document.querySelectorAll("#ficha .miniaturas button").forEach(x => x.setAttribute("aria-current", +x.dataset.i === vista));
+  };
+  $("#ampliar").addEventListener("click", ev => { const a = principal.classList.toggle("ampliado"); ev.currentTarget.textContent = a ? "Ver completo" : "Ampliar"; });
+  document.querySelectorAll("#ficha .miniaturas button").forEach(b => b.addEventListener("click", () => mostrar(+b.dataset.i)));
+  document.querySelectorAll("#ficha .galeria-flecha").forEach(b => b.addEventListener("click", () => mostrar(vista + +b.dataset.paso)));
+  // Deslizar con el dedo para cambiar de foto
+  let toque = null;
+  principal.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse" && imagenes.length > 1 && !principal.classList.contains("ampliado")) toque = { x: e.clientX, y: e.clientY }; });
+  principal.addEventListener("pointerup", e => {
+    if (!toque) return;
+    const dx = e.clientX - toque.x, dy = e.clientY - toque.y; toque = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) mostrar(vista + (dx < 0 ? 1 : -1));
+  });
+  principal.addEventListener("pointercancel", () => { toque = null; });
+  // Zoom al pasar el mouse sobre una foto (solo computador)
+  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    principal.addEventListener("pointermove", e => {
+      if (e.pointerType !== "mouse" || imagenes[vista].tipo !== "foto") return;
+      const r = principal.getBoundingClientRect();
+      imgP.style.transformOrigin = `${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%`;
+      imgP.classList.add("zoom");
+    });
+    principal.addEventListener("pointerleave", () => imgP.classList.remove("zoom"));
+  }
   $("#ventana-producto").showModal();
   $("#ventana-producto").scrollTop = 0;
 }
@@ -216,7 +245,7 @@ function abrirProducto(id) {
 let pedido = [];
 try { pedido = JSON.parse(localStorage.getItem("angie-pedido") || "[]"); } catch (e) { pedido = []; }
 const guardar = () => { try { localStorage.setItem("angie-pedido", JSON.stringify(pedido)); } catch (e) {} };
-const datosCliente = { nombre: "", entrega: "retiro", comuna: "", nota: "" };
+const datosCliente = { nombre: "", entrega: "retiro", comuna: "", nota: "", regalo: false };
 
 function agregar(item) {
   const igual = pedido.find(x => x.id === item.id && x.talla === item.talla && x.color === item.color);
@@ -235,6 +264,7 @@ function mensajePedido() {
   const lineas = pedido.map((x, i) => `${i + 1}. ${x.n}: ${detalleItem(x)}`);
   const entrega = datosCliente.entrega === "envio" ? `Envío a ${datosCliente.comuna || "(comuna y ciudad)"}` : "Retiro en la tienda";
   const extra = [`Entrega: ${entrega}`];
+  if (datosCliente.regalo) extra.push("Envolver para regalo: sí");
   if (datosCliente.nombre) extra.push(`Nombre: ${datosCliente.nombre}`);
   if (datosCliente.nota) extra.push(`Comentario: ${datosCliente.nota}`);
   return ["Hola Angie's Secret 👋 Quiero hacer este pedido:", "", ...lineas, "", ...extra, "", "¿Me confirman disponibilidad y precio? Gracias."].join("\n");
@@ -255,6 +285,7 @@ function pintarPedido() {
         <label class="opcion"><input type="radio" name="entrega" value="envio" ${datosCliente.entrega === "envio" ? "checked" : ""}><span>Envío a domicilio (todo Chile)</span></label>
       </div>
     </fieldset>
+    <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>Envolver para regalo (sin costo)</span></label></div>
     <div class="campo" id="campo-comuna" ${datosCliente.entrega === "envio" ? "" : "hidden"}><label for="comuna">Comuna y ciudad</label><input id="comuna" value="${esc(datosCliente.comuna)}" placeholder="Ej: Maipú, Santiago" autocomplete="address-level2"></div>
     <div class="campo"><label for="nombre">Tu nombre (opcional)</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="given-name"></div>
     <div class="campo"><label for="nota">Comentario (opcional)</label><textarea id="nota" placeholder="Ej: es para regalo">${esc(datosCliente.nota)}</textarea></div>
@@ -278,8 +309,172 @@ $("#pedido").addEventListener("input", e => {
   if (t.id === "comuna") datosCliente.comuna = t.value;
   if (t.id === "nombre") datosCliente.nombre = t.value;
   if (t.id === "nota") datosCliente.nota = t.value;
+  if (t.id === "envolver") datosCliente.regalo = t.checked;
   const a = $("#enviar-pedido"); if (a) a.href = wspUrl(mensajePedido());
 });
+
+/* ---------- Animación: la foto vuela a la barra del pedido ---------- */
+function volarAlPedido(src, desde) {
+  const barra = $("#barra-pedido");
+  if (barra.hidden) return;
+  const pulso = () => { barra.classList.remove("pulso"); void barra.offsetWidth; barra.classList.add("pulso"); };
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !desde || !desde.width || !barra.animate) { pulso(); return; }
+  const hasta = barra.getBoundingClientRect();
+  const lado = Math.min(desde.width, desde.height, 220);
+  const x0 = desde.left + desde.width / 2 - lado / 2, y0 = desde.top + desde.height / 2 - lado / 2;
+  const x1 = hasta.left + 36 - lado / 2, y1 = hasta.top + hasta.height / 2 - lado / 2;
+  const v = document.createElement("img");
+  v.src = src; v.alt = ""; v.className = "vuela";
+  Object.assign(v.style, { left: `${x0}px`, top: `${y0}px`, width: `${lado}px`, height: `${lado}px` });
+  document.body.appendChild(v);
+  const vuelo = v.animate([
+    { transform: "translate(0, 0) scale(1)", opacity: 1 },
+    { transform: `translate(${(x1 - x0) * 0.5}px, ${(y1 - y0) * 0.5 - 90}px) scale(0.55)`, opacity: 0.95, offset: 0.55 },
+    { transform: `translate(${x1 - x0}px, ${y1 - y0}px) scale(0.12)`, opacity: 0.35 }
+  ], { duration: 750, easing: "cubic-bezier(.5, 0, .3, 1)" });
+  vuelo.onfinish = vuelo.oncancel = () => { v.remove(); pulso(); };
+}
+
+/* ---------- Fecha de referencia (para revisar otra fecha: ?fecha=2026-12-10) ---------- */
+const fechaHoy = () => /^\d{4}-\d{2}-\d{2}$/.test(params.get("fecha") || "") ? params.get("fecha") : ahora().fecha;
+const diasEntre = (a, b) => Math.round((Date.parse(b + "T12:00:00Z") - Date.parse(a + "T12:00:00Z")) / 86400000);
+
+/* ---------- Aviso de temporada con cuenta regresiva ---------- */
+function pintarAvisoTemporada() {
+  const hoy = fechaHoy();
+  const activas = FECHAS_COMERCIALES.map(f => {
+    if (f.fecha) { const d = diasEntre(hoy, f.fecha); return d >= 0 && d <= f.desde ? { ...f, dias: d, termina: f.fecha } : null; }
+    return hoy >= f.inicio && hoy <= f.fin ? { ...f, dias: null, termina: f.fin } : null;
+  }).filter(Boolean).sort((a, b) => a.termina.localeCompare(b.termina));
+  const caja = $("#aviso-temporada");
+  if (!activas.length) { caja.hidden = true; return; }
+  const f = activas[0];
+  let titulo = "";
+  if (f.dias === 0) titulo = f.nombre === "Navidad" ? "¡Feliz Navidad!" : `¡Hoy es ${f.nombre}!`;
+  else if (f.dias) titulo = `${f.dias === 1 ? "Falta 1 día" : `Faltan ${f.dias} días`} para ${f.nombre}.`;
+  const cerradoHoy = f.dias === 0 && FERIADOS[hoy] === "cerrado";
+  $("#aviso-temporada-texto").innerHTML = `${titulo ? `<strong>${esc(titulo)}</strong> ` : ""}${esc(cerradoHoy ? "Hoy la tienda está cerrada. Gracias por preferirnos." : f.texto)}`;
+  const b = $("#aviso-temporada-boton");
+  b.textContent = f.boton; b.href = f.enlace; b.hidden = cerradoHoy;
+  caja.hidden = false;
+}
+
+/* ---------- Decoración según la fecha ---------- */
+function temaDelDia(fecha) {
+  const md = fecha.slice(5);
+  if (md >= "12-01" && md <= "12-26") return "navidad";
+  if (md >= "09-10" && md <= "09-20") return "patrias";
+  const madre = FECHAS_COMERCIALES.find(f => f.fecha && f.nombre.includes("Madre") && f.fecha.slice(0, 4) === fecha.slice(0, 4));
+  const antesMadre = madre ? diasEntre(fecha, madre.fecha) : -1;
+  if ((md >= "02-07" && md <= "02-14") || (antesMadre >= 0 && antesMadre <= 7)) return "corazones";
+  if (md >= "06-01" && md <= "08-31") return "invierno";
+  return "";
+}
+function decorar() {
+  const tema = temaDelDia(fechaHoy());
+  document.documentElement.dataset.tema = tema;
+  document.querySelectorAll(".decoracion").forEach(d => d.remove());
+  if (!tema) return;
+  const d = document.createElement("div");
+  d.setAttribute("aria-hidden", "true");
+  if (tema === "navidad" || tema === "patrias") {
+    d.className = `decoracion ${tema === "navidad" ? "guirnalda" : "banderines"}`;
+    d.innerHTML = "<i></i>".repeat(80);
+    $(".cabecera").appendChild(d);
+  } else {
+    d.className = `decoracion caen ${tema}`;
+    const icono = tema === "invierno" ? "#i-copo" : "#i-corazon";
+    let html = "";
+    for (let i = 0; i < 14; i++) {
+      const izq = (i * 37 + 11) % 100, tam = 12 + ((i * 7) % 14), dur = 9 + ((i * 5) % 8), retraso = (i * 1.7) % dur;
+      html += `<svg viewBox="0 0 24 24" style="left:${izq}%;width:${tam}px;height:${tam}px;animation-duration:${dur}s;animation-delay:-${retraso.toFixed(1)}s"><use href="${icono}"/></svg>`;
+    }
+    d.innerHTML = html;
+    $(".portada").prepend(d);
+  }
+}
+
+/* ---------- Arma tu regalo ---------- */
+const regalo = { para: "mujer", elegidos: [] };
+const MAX_REGALO = 3;
+function opcionesRegalo() {
+  return REGALOS.map(id => PRODUCTOS.find(p => p.id === id)).filter(Boolean)
+    .filter(p => p.para.includes(regalo.para))
+    .filter(p => estado.temporada === "todo" || p.t === "todo" || p.t === estado.temporada);
+}
+function pintarRegalo() {
+  document.querySelectorAll("[data-regalo-para]").forEach(b => b.setAttribute("aria-pressed", b.dataset.regaloPara === regalo.para));
+  const t = estado.temporada === "todo" ? "de todas las temporadas" : `${NOMBRE_T[estado.temporada]} y para todo el año`;
+  $("#regalo-temporada").textContent = `Ideas ${t}. Para ver otra temporada, cámbiala en el catálogo.`;
+  const ops = opcionesRegalo();
+  $("#regalo-opciones").innerHTML = ops.length ? ops.map(p => `<li><button type="button" class="regalo-opcion" data-regalo="${p.id}" aria-pressed="${regalo.elegidos.includes(p.id)}"><img src="${foto(p.fotos[0])}" alt="" width="320" height="400" loading="lazy" decoding="async"><span>${esc(p.n)}</span><i class="regalo-check" aria-hidden="true"></i></button></li>`).join("")
+    : `<li class="regalo-vacio">Para esta temporada no tenemos ideas cargadas aquí. Escríbenos y te ayudamos a elegir.</li>`;
+  pintarCuentaRegalo();
+}
+function pintarCuentaRegalo() {
+  const nombres = regalo.elegidos.map(id => PRODUCTOS.find(p => p.id === id)).filter(Boolean).map(p => p.n);
+  $("#regalo-cuenta").textContent = nombres.length ? `Elegiste ${nombres.length} de ${MAX_REGALO}: ${nombres.join(", ")}.` : `Todavía no eliges prendas. Puedes elegir hasta ${MAX_REGALO}.`;
+  const detalle = $("#regalo-detalle").value.trim();
+  const texto = nombres.length
+    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto:", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
+    : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?`;
+  $("#regalo-enviar").href = wspUrl(texto);
+}
+document.querySelectorAll("[data-regalo-para]").forEach(b => b.addEventListener("click", () => { regalo.para = b.dataset.regaloPara; pintarRegalo(); }));
+$("#regalo-opciones").addEventListener("click", e => {
+  const b = e.target.closest("[data-regalo]"); if (!b) return;
+  const id = b.dataset.regalo, i = regalo.elegidos.indexOf(id);
+  if (i >= 0) regalo.elegidos.splice(i, 1);
+  else if (regalo.elegidos.length >= MAX_REGALO) { avisar(`Puedes elegir hasta ${MAX_REGALO} prendas`); return; }
+  else regalo.elegidos.push(id);
+  b.setAttribute("aria-pressed", regalo.elegidos.includes(id));
+  pintarCuentaRegalo();
+});
+$("#regalo-detalle").addEventListener("input", pintarCuentaRegalo);
+
+/* ---------- Guía de tallas ---------- */
+let tallasDe = null;
+function usaGuiaTallas(p) {
+  return p.cat !== "accesorios" && p.id !== "pantys" && !(p.tallas && p.tallas.length === 1) && !p.para.every(x => x === "ninos");
+}
+function abrirGuiaTallas(id) {
+  tallasDe = PRODUCTOS.find(x => x.id === id) || null;
+  $("#tallas-producto").textContent = tallasDe ? `Para: ${tallasDe.n}` : "";
+  refrescarTallas();
+  $("#ventana-tallas").showModal();
+}
+function medidas() {
+  const d = new FormData($("#form-tallas")), m = {};
+  for (const k of ["busto", "cintura", "cadera"]) {
+    const v = parseFloat(String(d.get(k) || "").replace(",", "."));
+    if (v >= 40 && v <= 220) m[k] = Math.round(v);
+  }
+  return m;
+}
+function sugerirTalla(m) {
+  if (!TABLAS_TALLAS || !Object.keys(m).length) return null;
+  const grupo = tallasDe && tallasDe.para.includes("hombre") && !tallasDe.para.includes("mujer") ? "hombre" : "mujer";
+  const filas = TABLAS_TALLAS[grupo] || [];
+  let mejor = null, puntos = 0;
+  filas.forEach(f => {
+    let ok = 0;
+    for (const k in m) if (f[k] && m[k] >= f[k][0] && m[k] <= f[k][1]) ok++;
+    if (ok && ok >= puntos) { mejor = f.talla; puntos = ok; }   // en empate gana la talla más grande
+  });
+  return mejor;
+}
+function refrescarTallas() {
+  const m = medidas();
+  const partes = [m.busto && `busto o pecho ${m.busto} cm`, m.cintura && `cintura ${m.cintura} cm`, m.cadera && `cadera ${m.cadera} cm`].filter(Boolean);
+  const sug = sugerirTalla(m);
+  const s = $("#tallas-sugerencia");
+  s.hidden = !sug;
+  if (sug) s.textContent = `Talla sugerida: ${sug}. Es referencial: confírmala por WhatsApp.`;
+  $("#tallas-enviar").href = wspUrl(`Hola Angie's Secret 👋 Quiero saber mi talla.${partes.length ? ` Mis medidas: ${partes.join(", ")}.` : ""}${tallasDe ? ` Estoy viendo: ${tallasDe.n}.` : ""}${sug ? ` La guía me sugiere talla ${sug}.` : ""} ¿Qué talla me recomiendan?`);
+}
+$("#form-tallas").addEventListener("input", refrescarTallas);
+$("#form-tallas").addEventListener("submit", e => e.preventDefault());
+document.addEventListener("click", e => { const b = e.target.closest("[data-guia-tallas]"); if (b) abrirGuiaTallas(b.dataset.guiaTallas || ""); });
 
 /* ---------- Comunes ---------- */
 document.querySelectorAll("dialog").forEach(d => {
@@ -295,6 +490,8 @@ $("#anio").textContent = new Date().getFullYear();
 
 actualizarLetrero();
 setInterval(actualizarLetrero, 60000);
+pintarAvisoTemporada();
+decorar();
 pintar();
 pintarBarra();
 if (params.get("producto")) abrirProducto(params.get("producto"));

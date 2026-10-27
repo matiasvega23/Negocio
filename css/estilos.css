@@ -267,3 +267,103 @@ legend { font-weight: 700; color: var(--noche); margin-bottom: 8px; padding: 0; 
 .lista-pedido span { font-size: .9375rem; color: var(--suave); }
 .entrega { display: grid; gap: 8px; }
 .entrega .opcion span { width: 100%; }
+
+/* ===================== Versión 4 ===================== */
+
+/* Capa de brillos (estela y estallido) */
+.efectos { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 45; }
+
+/* Aviso de temporada con cuenta regresiva */
+.aviso-temporada { background: var(--noche); color: #fff; font-size: 1rem; }
+.aviso-temporada[hidden] { display: none; }
+.aviso-temporada .envoltura { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 14px; padding-top: 9px; padding-bottom: 9px; text-align: center; }
+.aviso-temporada p { margin: 0; }
+.aviso-temporada strong { color: var(--oro); }
+.aviso-temporada-boton { color: #fff; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; padding: 4px 0; }
+.aviso-temporada-boton:hover { color: var(--oro); }
+
+/* Enlaces dentro de "Lo que ofrecemos" */
+.enlace-dato { display: inline-block; margin-top: 4px; padding: 6px 0; background: none; border: 0; font: 700 1rem var(--f-txt); color: var(--frambuesa-osc); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.datos .enlace-dato { display: block; }
+
+/* Arma tu regalo */
+.regalo { padding: 56px 0 48px; background: linear-gradient(180deg, var(--papel), var(--rubor)); }
+.regalo-cabeza { display: flex; gap: 16px; align-items: flex-start; }
+.regalo-icono { flex: none; width: 56px; height: 56px; padding: 12px; border-radius: 50%; background: var(--frambuesa); color: #fff; margin-top: 2px; }
+.regalo .resumen { margin: 14px 0 0; }
+.regalo-opciones { list-style: none; margin: 18px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media (min-width: 640px) { .regalo-opciones { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px; } }
+.regalo-opcion { position: relative; width: 100%; padding: 0 0 10px; border: 3px solid transparent; border-radius: 16px; background: #fff; cursor: pointer; text-align: left; font: 700 1rem/1.25 var(--f-txt); color: var(--noche); box-shadow: 0 6px 18px -12px rgba(28, 39, 84, .5); transition: border-color .15s, transform .15s; }
+.regalo-opcion:hover { transform: translateY(-2px); }
+.regalo-opcion img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 12px 12px 0 0; }
+.regalo-opcion span { display: block; padding: 10px 12px 0; }
+.regalo-opcion[aria-pressed="true"] { border-color: var(--frambuesa); }
+.regalo-check { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, .92); border: 2px solid var(--noche); }
+.regalo-opcion[aria-pressed="true"] .regalo-check { background: var(--frambuesa); border-color: var(--frambuesa); }
+.regalo-opcion[aria-pressed="true"] .regalo-check::after { content: ""; position: absolute; left: 10px; top: 5px; width: 9px; height: 15px; border: solid #fff; border-width: 0 3px 3px 0; transform: rotate(45deg); }
+.regalo-vacio { grid-column: 1 / -1; padding: 22px; border: 2px dashed var(--linea); border-radius: 16px; background: #fff; }
+.regalo-cierre { margin-top: 26px; max-width: 560px; display: grid; gap: 4px; }
+.regalo-cuenta { margin: 0; font-weight: 700; color: var(--noche); }
+.regalo-cierre .boton { margin-top: 14px; }
+
+/* Ficha: flechas, contador, zoom y guía de tallas */
+.galeria-principal { touch-action: pan-y; }
+.galeria-principal.ampliado { touch-action: auto; }
+.galeria-principal img { transition: transform .18s ease; }
+.galeria-principal img.zoom { transform: scale(2); cursor: zoom-in; }
+.galeria-flecha { position: absolute; top: 50%; z-index: 2; width: 46px; height: 46px; margin-top: -23px; border-radius: 50%; border: 2px solid var(--noche); background: rgba(255, 255, 255, .92); color: var(--noche); display: grid; place-items: center; cursor: pointer; }
+.galeria-flecha svg { width: 22px; height: 22px; }
+.galeria-flecha.anterior { left: 10px; }
+.galeria-flecha.siguiente { right: 10px; }
+.galeria-contador { position: absolute; left: 10px; top: 10px; z-index: 2; background: rgba(28, 39, 84, .88); color: #fff; font-size: .875rem; padding: 3px 10px; border-radius: 999px; }
+.guia-tallas { display: inline-flex; align-items: center; gap: .4em; margin-top: 6px; color: var(--frambuesa-osc); font-weight: 700; }
+.guia-tallas svg { width: 1.2em; height: 1.2em; }
+
+/* Envolver para regalo en el pedido */
+.envolver { margin-top: 14px; }
+.envolver .opcion span { width: 100%; }
+.envolver svg { width: 1.2em; height: 1.2em; }
+
+/* La foto que vuela a la barra del pedido */
+.vuela { position: fixed; z-index: 65; object-fit: cover; border-radius: 14px; pointer-events: none; box-shadow: 0 12px 26px -10px rgba(10, 14, 35, .55); }
+.barra-pedido.pulso { animation: pulso .5s ease; }
+@keyframes pulso { 35% { transform: scale(1.05); box-shadow: 0 0 0 6px rgba(231, 184, 74, .45), 0 14px 30px -10px rgba(10, 14, 35, .55); } }
+
+/* Guía de tallas */
+.tallas > p { margin: 12px 0 0; }
+.medir { margin: 12px 0 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.medir strong { color: var(--noche); }
+.medidas { display: grid; gap: 0 14px; }
+@media (min-width: 560px) { .medidas { grid-template-columns: repeat(3, 1fr); } }
+.sugerencia { margin: 16px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--rubor); color: var(--noche); font-weight: 700; }
+
+/* Decoración según la fecha */
+.portada { position: relative; overflow: hidden; }
+.portada > .envoltura { position: relative; z-index: 1; }
+.decoracion { pointer-events: none; }
+.guirnalda, .banderines { position: absolute; left: 0; right: 0; top: 100%; display: flex; gap: 20px; padding: 0 10px; overflow: hidden; }
+.guirnalda { height: 18px; background: linear-gradient(#2B3973, #2B3973) 0 2px / 100% 2px no-repeat; }
+.guirnalda i { flex: none; width: 9px; height: 13px; margin-top: 3px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; background: #E5484D; box-shadow: 0 0 8px 1px rgba(229, 72, 77, .55); animation: titilar 1.6s ease-in-out infinite alternate; }
+.guirnalda i:nth-child(4n+2) { background: #1E9E5A; box-shadow: 0 0 8px 1px rgba(30, 158, 90, .55); animation-delay: -.4s; }
+.guirnalda i:nth-child(4n+3) { background: #E7B84A; box-shadow: 0 0 8px 1px rgba(231, 184, 74, .6); animation-delay: -.8s; }
+.guirnalda i:nth-child(4n+4) { background: #2F7FD6; box-shadow: 0 0 8px 1px rgba(47, 127, 214, .55); animation-delay: -1.2s; }
+@keyframes titilar { from { opacity: .45; } to { opacity: 1; } }
+.banderines { gap: 4px; height: 18px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
+.banderines i { flex: none; width: 20px; height: 16px; clip-path: polygon(0 0, 100% 0, 50% 100%); background: #D52B1E; }
+.banderines i:nth-child(3n+2) { background: #fff; }
+.banderines i:nth-child(3n+3) { background: #0039A6; }
+.caen { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+.caen svg { position: absolute; top: -6%; animation: caer linear infinite; }
+.caen.invierno svg { color: #93c6e8; opacity: .6; }
+.caen.corazones svg { color: var(--frambuesa-clara); opacity: .45; top: 104%; animation-name: subir; }
+@keyframes caer { from { top: -6%; transform: rotate(0deg); } to { top: 104%; transform: rotate(220deg); } }
+@keyframes subir { from { top: 104%; transform: translateX(0); } 50% { transform: translateX(14px); } to { top: -6%; transform: translateX(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .caen { display: none; }
+  .guirnalda i { animation: none; opacity: 1; }
+  .galeria-principal img { transition: none; }
+  .regalo-opcion { transition: none; }
+  .regalo-opcion:hover { transform: none; }
+  .barra-pedido.pulso { animation: none; }
+}

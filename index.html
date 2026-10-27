@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Angie's Secret · versión 3 · 27 de octubre de 2026 -->
+<!-- Angie's Secret · versión 4 · 27 de octubre de 2026 -->
 <html lang="es-CL">
 <head>
 <meta charset="utf-8">
@@ -58,11 +58,19 @@
 <body>
 <a class="saltar" href="#catalogo">Ir al catálogo</a>
 
+<div class="aviso-temporada" id="aviso-temporada" hidden>
+  <div class="envoltura">
+    <p id="aviso-temporada-texto"></p>
+    <a class="aviso-temporada-boton" id="aviso-temporada-boton" href="#regalo"></a>
+  </div>
+</div>
+
 <header class="cabecera">
   <div class="envoltura">
     <a class="marca" href="#inicio"><span class="oculto">Angie's Secret, inicio</span><span class="logo" aria-hidden="true"><span class="parte rosa">Angie<svg class="apos" viewBox="0 0 30 44"><use href="#i-etiqueta"/></svg>s</span> <span class="parte">Secret</span></span></a>
     <nav class="menu" aria-label="Secciones">
       <a href="#catalogo">Catálogo</a>
+      <a href="#regalo">Regalos</a>
       <a href="#como-pedir">Cómo pedir</a>
       <a href="#visitanos">Visítanos</a>
     </nav>
@@ -110,10 +118,10 @@
   <section class="datos" aria-label="Lo que ofrecemos">
     <div class="envoltura">
       <ul>
-        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regla"/></svg></span><div><strong>Tallas de la S a la XXL</strong><span>Pijamas de mujer hasta la talla 60.</span></div></li>
+        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regla"/></svg></span><div><strong>Tallas de la S a la XXL</strong><span>Pijamas de mujer hasta la talla 60.</span><button type="button" class="enlace-dato" data-guia-tallas>¿Cuál es mi talla?</button></div></li>
         <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-camion"/></svg></span><div><strong>Envíos a todo Chile</strong><span>Coordinamos el envío por WhatsApp.</span></div></li>
         <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-caja"/></svg></span><div><strong>Lo traemos a pedido</strong><span>Si no lo tenemos, lo buscamos para ti.</span></div></li>
-        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg></span><div><strong>Envolvemos tus regalos</strong><span>Sin costo, para cumpleaños, Navidad y fechas especiales.</span></div></li>
+        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg></span><div><strong>Envolvemos tus regalos</strong><span>Sin costo, para cumpleaños, Navidad y fechas especiales.</span><a class="enlace-dato" href="#regalo">Arma tu regalo</a></div></li>
       </ul>
     </div>
   </section>
@@ -150,6 +158,34 @@
       </div>
       <p class="resumen" id="resumen" aria-live="polite"></p>
       <div id="listado"></div>
+    </div>
+  </section>
+
+  <section class="regalo" id="regalo" aria-labelledby="titulo-regalo">
+    <div class="envoltura">
+      <div class="regalo-cabeza">
+        <svg class="regalo-icono" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>
+        <div>
+          <h2 class="titulo" id="titulo-regalo">Arma tu regalo</h2>
+          <p class="intro">Elige hasta 3 prendas y te lo entregamos envuelto para regalo, sin costo. Por WhatsApp te ayudamos con las tallas y los colores.</p>
+        </div>
+      </div>
+      <span class="control-titulo" id="lbl-regalo-para">¿Para quién es?</span>
+      <div class="para" role="group" aria-labelledby="lbl-regalo-para">
+        <button type="button" data-regalo-para="mujer" aria-pressed="true">Para ella</button>
+        <button type="button" data-regalo-para="hombre" aria-pressed="false">Para él</button>
+        <button type="button" data-regalo-para="ninos" aria-pressed="false">Para niños</button>
+      </div>
+      <p class="resumen" id="regalo-temporada"></p>
+      <ul class="regalo-opciones" id="regalo-opciones"></ul>
+      <div class="regalo-cierre">
+        <p class="regalo-cuenta" id="regalo-cuenta" aria-live="polite">Todavía no eliges prendas.</p>
+        <div class="campo">
+          <label for="regalo-detalle">Cuéntanos para quién es (opcional)</label>
+          <input id="regalo-detalle" placeholder="Ej: para mi mamá, usa talla L" autocomplete="off">
+        </div>
+        <a class="boton boton-wsp" id="regalo-enviar" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Pedir mi regalo por WhatsApp</a>
+      </div>
     </div>
   </section>
 
@@ -235,6 +271,30 @@
   <div class="pedido" id="pedido"></div>
 </dialog>
 
+<dialog id="ventana-tallas" aria-labelledby="tallas-titulo">
+  <button type="button" class="cerrar" data-cerrar aria-label="Cerrar"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <div class="pedido tallas">
+    <h2 id="tallas-titulo">¿Cuál es mi talla?</h2>
+    <p class="letra-chica" id="tallas-producto" style="margin-top:0"></p>
+    <p>Mídete con una huincha de medir, sin apretarla, sobre ropa delgada.</p>
+    <ol class="medir">
+      <li><strong>Busto o pecho:</strong> rodea la parte más prominente del pecho.</li>
+      <li><strong>Cintura:</strong> rodea la parte más angosta, sobre el ombligo.</li>
+      <li><strong>Cadera:</strong> rodea la parte más ancha.</li>
+    </ol>
+    <form id="form-tallas" class="medidas">
+      <div class="campo"><label for="m-busto">Busto o pecho (cm)</label><input id="m-busto" name="busto" type="number" inputmode="numeric" min="50" max="200" placeholder="Ej: 96"></div>
+      <div class="campo"><label for="m-cintura">Cintura (cm)</label><input id="m-cintura" name="cintura" type="number" inputmode="numeric" min="40" max="200" placeholder="Ej: 80"></div>
+      <div class="campo"><label for="m-cadera">Cadera (cm)</label><input id="m-cadera" name="cadera" type="number" inputmode="numeric" min="50" max="220" placeholder="Ej: 104"></div>
+    </form>
+    <p class="sugerencia" id="tallas-sugerencia" aria-live="polite" hidden></p>
+    <div class="ficha-acciones">
+      <a class="boton boton-wsp" id="tallas-enviar" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Enviar mis medidas por WhatsApp</a>
+    </div>
+    <p class="letra-chica">Las tallas cambian según la marca y el modelo. Con tus medidas te decimos cuál te queda mejor en la prenda que elijas.</p>
+  </div>
+</dialog>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="i-wsp" viewBox="0 0 24 24"><path d="M12 2.2a9.8 9.8 0 0 0-8.4 14.8L2.3 21.7l4.8-1.3A9.8 9.8 0 1 0 12 2.2Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M8.7 7.2c.3-.5.6-.5.9-.5h.6c.2 0 .4 0 .6.5l.8 1.9c.1.3 0 .5-.1.7l-.6.7c-.2.2-.2.4-.1.6.7 1.1 1.5 1.9 2.6 2.5.2.1.4.1.6-.1l.7-.8c.2-.2.4-.2.7-.1l1.9.9c.3.1.4.3.4.5 0 .6-.2 1.3-.7 1.6-.6.4-1.5.6-2.9.1-1.5-.5-2.7-1.4-3.8-2.5s-1.9-2.4-2.3-3.7c-.4-1.3-.1-2.2.2-2.3Z" fill="currentColor"/></symbol>
@@ -254,11 +314,15 @@
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
     <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
     <symbol id="i-menos" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-izq" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-der" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-corazon" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4 7.4 4c2 0 3.6 1.1 4.6 2.7C13 5.1 14.6 4 16.6 4c3.5 0 5.8 3.6 4.6 7.1-1.7 4.8-9.2 9.4-9.2 9.4Z" fill="currentColor"/></symbol>
     <symbol id="i-compartir" viewBox="0 0 24 24"><circle cx="18" cy="5.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="6" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="18.5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1" stroke="currentColor" stroke-width="1.9"/></symbol>
   </defs>
 </svg>
 
 <script src="js/datos.js"></script>
 <script src="js/app.js"></script>
+<script src="js/efectos.js"></script>
 </body>
 </html>
