@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Angie's Secret · versión 4.1 · 27 de octubre de 2026 -->
+<!-- Angie's Secret · versión 4.2 · 27 de octubre de 2026 -->
 <html lang="es-CL">
 <head>
 <meta charset="utf-8">
@@ -35,7 +35,7 @@
   "description": "Lencería, ropa interior, pijamas y ropa de temporada para mujer y hombre. También ropa para niños. Envíos a todo Chile.",
   "url": "https://angiessecret.netlify.app/",
   "telephone": "+56995709114",
-  "image": "https://angiessecret.netlify.app/img/compartir.jpg",
+  "image": ["https://angiessecret.netlify.app/img/fachada.webp", "https://angiessecret.netlify.app/img/compartir.jpg"],
   "hasMap": "https://www.google.com/maps/search/?api=1&query=Domingo+Santa+Mar%C3%ADa+3831%2C+Renca%2C+Chile",
   "address": {
     "@type": "PostalAddress",
@@ -89,6 +89,10 @@
         <p class="bajada">Lencería y ropa para mujer y hombre. También tenemos ropa para niños. Atendemos en Renca hace más de 12 años y enviamos a todo Chile.</p>
       </div>
       <figure class="vitrina">
+        <div class="vitrina-marco">
+        <div class="vitrina-foto">
+          <img src="img/fachada.webp" width="899" height="1124" alt="Fachada de la tienda con el letrero de Angie's Secret, lencería femenina y masculina, y ropa colgada en la entrada." fetchpriority="high">
+        </div>
         <div class="letrero" id="letrero" data-abierto="si" role="status" aria-live="polite">
           <div class="letrero-gira">
             <svg viewBox="0 0 250 62" aria-hidden="true">
@@ -101,10 +105,8 @@
             </div>
           </div>
         </div>
-        <div class="vitrina-foto">
-          <img src="img/vitrina.webp" width="1000" height="935" alt="Maniquíes en la entrada de la tienda con calzas, pantalones floreados, vestidos y pijamas de verano." fetchpriority="high">
         </div>
-        <figcaption>Nuestra vitrina en Domingo Santa María 3831, Renca.</figcaption>
+        <figcaption>Nuestra tienda en Domingo Santa María 3831, Renca.</figcaption>
       </figure>
       <div class="acciones">
         <a class="boton boton-principal" href="#catalogo">Ver el catálogo</a>
@@ -239,6 +241,19 @@
           </tbody>
         </table>
         <p class="nota">Horario continuado. En los feriados irrenunciables la tienda está cerrada.</p>
+      </div>
+      <div class="conoce">
+        <h3>Así es la tienda</h3>
+        <div class="conoce-fotos">
+          <figure>
+            <img src="img/tienda-interior.webp" width="540" height="675" alt="Interior de la tienda: pared con sostenes, calzones colgados y cajones con calcetas." loading="lazy" decoding="async">
+            <figcaption><strong>Por dentro</strong> Sostenes, calzones, calcetas y mucho más de lo que cabe en el catálogo.</figcaption>
+          </figure>
+          <figure>
+            <img src="img/tienda-vereda.webp" width="900" height="900" alt="Vereda frente a la tienda con maniquíes de pantalones y, al otro lado de la calle, un bandejón con palmeras." loading="lazy" decoding="async">
+            <figcaption><strong>Para llegar</strong> Frente a la tienda hay un bandejón con palmeras. Busca nuestros maniquíes en la vereda.</figcaption>
+          </figure>
+        </div>
       </div>
     </div>
   </section>
