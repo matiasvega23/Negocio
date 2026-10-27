@@ -1,0 +1,5 @@
+# Archivos del sistema que no se suben
+.DS_Store
+Thumbs.db
+desktop.ini
+*.zip

@@ -1,0 +1,5 @@
+# Configuración de Netlify para Angie's Secret.
+# El sitio es estático: no hay que compilar nada, solo publicar la carpeta "sitio".
+[build]
+  publish = "sitio"
+  command = ""
