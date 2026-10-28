@@ -24,8 +24,10 @@ function ahora() {
 function sumarDias(fecha, n) { const d = new Date(fecha + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
 function horarioDe(fecha, dow) {
   const f = FERIADOS[fecha];
-  if (f === "cerrado" || dow === 0) return null;
+  if (f === "cerrado") return null;
+  // Los feriados se abren de 11:00 a 14:00 aunque caigan domingo (confirmado por la dueña, oct 2026).
   if (f === "medio") return [aMin(TIENDA.abre), aMin(TIENDA.cierraFeriado), true];
+  if (dow === 0) return null;
   return [aMin(TIENDA.abre), aMin(TIENDA.cierra), false];
 }
 const hora = m => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -245,7 +247,11 @@ function abrirProducto(id) {
 let pedido = [];
 try { pedido = JSON.parse(localStorage.getItem("angie-pedido") || "[]"); } catch (e) { pedido = []; }
 const guardar = () => { try { localStorage.setItem("angie-pedido", JSON.stringify(pedido)); } catch (e) {} };
-const datosCliente = { nombre: "", entrega: "retiro", comuna: "", nota: "", regalo: false };
+// Registro del 10% de bienvenida: se recuerda en este navegador para que el pedido lo pida solo.
+let registro = null;
+try { registro = JSON.parse(localStorage.getItem("angie-registro") || "null"); } catch (e) { registro = null; }
+const LINEA_BIENVENIDA = "Me registré en la página, así que quiero usar mi 10% de descuento de bienvenida en esta primera compra 😊";
+const datosCliente = { nombre: registro ? `${registro.nombre} ${registro.apellido}` : "", entrega: "retiro", comuna: "", nota: "", regalo: false, bienvenida: !!registro };
 
 function agregar(item) {
   const igual = pedido.find(x => x.id === item.id && x.talla === item.talla && x.color === item.color);
@@ -267,7 +273,10 @@ function mensajePedido() {
   if (datosCliente.regalo) extra.push("Envolver para regalo: sí");
   if (datosCliente.nombre) extra.push(`Nombre: ${datosCliente.nombre}`);
   if (datosCliente.nota) extra.push(`Comentario: ${datosCliente.nota}`);
-  return ["Hola Angie's Secret 👋 Quiero hacer este pedido:", "", ...lineas, "", ...extra, "", "¿Me confirman disponibilidad y precio? Gracias."].join("\n");
+  const cierre = datosCliente.bienvenida
+    ? [LINEA_BIENVENIDA, "", "¿Me confirman disponibilidad y el precio con el descuento? ¡Muchas gracias!"]
+    : ["¿Me confirman disponibilidad y precio? Gracias."];
+  return ["Hola Angie's Secret 👋 Quiero hacer este pedido:", "", ...lineas, "", ...extra, "", ...cierre].join("\n");
 }
 function pintarPedido() {
   const n = pedido.reduce((s, x) => s + x.cantidad, 0);
@@ -286,6 +295,8 @@ function pintarPedido() {
       </div>
     </fieldset>
     <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>Envolver para regalo (sin costo)</span></label></div>
+    <div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi 10% de bienvenida en esta primera compra</span></label></div>
+    ${datosCliente.bienvenida ? "" : `<p class="letra-chica">¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe un 10% de descuento.</p>`}
     <div class="campo" id="campo-comuna" ${datosCliente.entrega === "envio" ? "" : "hidden"}><label for="comuna">Comuna y ciudad</label><input id="comuna" value="${esc(datosCliente.comuna)}" placeholder="Ej: Maipú, Santiago" autocomplete="address-level2"></div>
     <div class="campo"><label for="nombre">Tu nombre (opcional)</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="given-name"></div>
     <div class="campo"><label for="nota">Comentario (opcional)</label><textarea id="nota" placeholder="Ej: es para regalo">${esc(datosCliente.nota)}</textarea></div>
@@ -302,6 +313,7 @@ $("#pedido").addEventListener("click", e => {
   if (q) { pedido.splice(+q.dataset.quitar, 1); guardar(); pintarBarra(); pintarPedido(); return; }
   if (e.target.closest("#vaciar")) { pedido = []; guardar(); pintarBarra(); pintarPedido(); return; }
   if (e.target.closest("[data-ir-catalogo]")) { $("#ventana-pedido").close(); location.hash = "catalogo"; }
+  if (e.target.closest("[data-ir-registro]")) { $("#ventana-pedido").close(); }
 });
 $("#pedido").addEventListener("input", e => {
   const t = e.target;
@@ -310,6 +322,7 @@ $("#pedido").addEventListener("input", e => {
   if (t.id === "nombre") datosCliente.nombre = t.value;
   if (t.id === "nota") datosCliente.nota = t.value;
   if (t.id === "envolver") datosCliente.regalo = t.checked;
+  if (t.id === "bienvenida") datosCliente.bienvenida = t.checked;
   const a = $("#enviar-pedido"); if (a) a.href = wspUrl(mensajePedido());
 });
 
@@ -418,8 +431,8 @@ function pintarCuentaRegalo() {
   $("#regalo-cuenta").textContent = nombres.length ? `Elegiste ${nombres.length} de ${MAX_REGALO}: ${nombres.join(", ")}.` : `Todavía no eliges prendas. Puedes elegir hasta ${MAX_REGALO}.`;
   const detalle = $("#regalo-detalle").value.trim();
   const texto = nombres.length
-    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto:", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
-    : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?`;
+    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto:", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), ...(registro ? [LINEA_BIENVENIDA, ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
+    : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?${registro ? `\n\n${LINEA_BIENVENIDA}` : ""}`;
   $("#regalo-enviar").href = wspUrl(texto);
 }
 document.querySelectorAll("[data-regalo-para]").forEach(b => b.addEventListener("click", () => { regalo.para = b.dataset.regaloPara; pintarRegalo(); }));
@@ -477,6 +490,53 @@ function refrescarTallas() {
 $("#form-tallas").addEventListener("input", refrescarTallas);
 $("#form-tallas").addEventListener("submit", e => e.preventDefault());
 document.addEventListener("click", e => { const b = e.target.closest("[data-guia-tallas]"); if (b) abrirGuiaTallas(b.dataset.guiaTallas || ""); });
+
+/* ---------- Registro y 10% de bienvenida ----------
+   El formulario lo guarda Netlify (Forms). Además se recuerda en este navegador
+   para que el mensaje de WhatsApp pida el descuento solo. */
+const formRegistro = $("#form-registro");
+function telefonoChileno(valor) {
+  const d = String(valor).replace(/\D/g, "");
+  if (d.length === 9 && d.startsWith("9")) return "+56" + d;
+  if (d.length === 11 && d.startsWith("569")) return "+" + d;
+  return null;
+}
+function mostrarRegistroListo(nombre) {
+  formRegistro.hidden = true;
+  $("#registro-listo").hidden = false;
+  $("#registro-listo-titulo").textContent = `¡Listo${nombre ? ", " + nombre : ""}! Tu 10% de bienvenida quedó registrado.`;
+}
+if (formRegistro) {
+  if (registro) mostrarRegistroListo(registro.nombre);
+  formRegistro.addEventListener("submit", async e => {
+    e.preventDefault();
+    const err = $("#registro-error"); err.hidden = true;
+    const tel = formRegistro.elements.telefono, tNorm = telefonoChileno(tel.value);
+    if (!tNorm) {
+      err.textContent = "Revisa tu teléfono: debe ser un celular de Chile, por ejemplo +56 9 1234 5678.";
+      err.hidden = false; tel.focus(); return;
+    }
+    tel.value = tNorm;
+    if (!formRegistro.checkValidity()) { formRegistro.reportValidity(); return; }
+    const boton = $("#registro-enviar"); boton.disabled = true; boton.textContent = "Enviando…";
+    try {
+      const r = await fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(new FormData(formRegistro)).toString() });
+      if (!r.ok) throw new Error(String(r.status));
+      const f = formRegistro.elements;
+      registro = { nombre: f.nombre.value.trim(), apellido: f.apellido.value.trim(), telefono: tNorm, fecha: ahora().fecha };
+      try { localStorage.setItem("angie-registro", JSON.stringify(registro)); } catch (e2) {}
+      datosCliente.bienvenida = true;
+      if (!datosCliente.nombre) datosCliente.nombre = `${registro.nombre} ${registro.apellido}`;
+      pintarCuentaRegalo();
+      mostrarRegistroListo(registro.nombre);
+    } catch (e3) {
+      err.textContent = "No pudimos guardar tu registro. Revisa tu conexión e inténtalo de nuevo, o escríbenos por WhatsApp.";
+      err.hidden = false;
+    } finally {
+      boton.disabled = false; boton.textContent = "Registrarme y obtener mi 10%";
+    }
+  });
+}
 
 /* ---------- Comunes ---------- */
 document.querySelectorAll("dialog").forEach(d => {

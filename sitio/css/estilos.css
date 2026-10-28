@@ -21,6 +21,7 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
 body { margin: 0; background: var(--papel); color: var(--tinta); font: 400 1.125rem/1.55 var(--f-txt); }
 img { max-width: 100%; display: block; }
@@ -398,3 +399,27 @@ legend { font-weight: 700; color: var(--noche); margin-bottom: 8px; padding: 0; 
 .valores span { color: var(--suave); }
 @media (min-width: 900px) { .conoce-fotos { grid-template-columns: repeat(3, 1fr); max-width: none; } }
 .conoce figure:nth-child(3) img { object-position: 50% 0; }
+
+/* Versión 4.4: registro con 10% de bienvenida. */
+.promo-registro { flex: 1 1 100%; margin: 6px 0 0; }
+.promo-registro a { display: inline-block; color: var(--noche); text-decoration-color: var(--frambuesa); text-underline-offset: 4px; font-size: 1.05rem; }
+.promo-registro strong { color: var(--frambuesa); }
+.registro { padding: 56px 0; background: linear-gradient(180deg, var(--rubor), var(--papel)); }
+.registro .envoltura { display: grid; gap: 28px; }
+@media (min-width: 900px) { .registro .envoltura { grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: start; } }
+.registro-sello { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 124px; height: 124px; margin: 0 0 14px; padding: 0 14px; border-radius: 50%; background: var(--frambuesa); color: #fff; font: 700 .85rem/1.1 var(--f-txt); text-align: center; box-shadow: 0 12px 24px -14px rgba(174, 28, 77, .7); }
+.registro-sello span { display: block; font: 700 2.6rem/1 var(--f-tit); }
+.registro-puntos { margin: 0; padding-left: 1.2em; color: var(--tinta); }
+.registro-puntos li { margin-bottom: 6px; }
+.registro-caja { background: #fff; border: 1px solid var(--linea); border-radius: 18px; padding: 22px 22px 24px; box-shadow: 0 14px 30px -20px rgba(28, 39, 84, .5); }
+.form-registro .campo:first-of-type { margin-top: 0; }
+.registro-fila { display: grid; gap: 0 16px; }
+@media (min-width: 560px) { .registro-fila { grid-template-columns: 1fr 1fr; } .registro-fila .campo { margin-top: 0; } }
+.casilla { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; margin-top: 16px; font-size: 1rem; cursor: pointer; }
+.casilla input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--frambuesa); }
+.casilla em { color: var(--suave); font-style: normal; }
+.form-registro .boton { width: 100%; margin-top: 20px; }
+.form-registro .boton:disabled { opacity: .7; cursor: wait; }
+.registro-error { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #FDECEC; color: #8A1F24; font-weight: 700; }
+.registro-listo-titulo { margin: 0 0 8px; font: 700 1.7rem/1.15 var(--f-tit); color: var(--noche); }
+.registro-listo .boton { margin-top: 10px; }
