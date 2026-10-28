@@ -35,7 +35,7 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 | `sitio/img/`, `sitio/fichas/` | Fotos de productos, del local y afiches |
 | `sitio/_headers` | Cabeceras de seguridad |
 | `sitio/404.html` | Página de error |
-| `sitio/privacidad.html` | Aviso de privacidad y bases del 10% de bienvenida |
+| `sitio/privacidad.html` | Aviso de privacidad y bases del descuento de bienvenida (10% o 20%) |
 | `sitio/registro-listo.html` | Confirmación del registro cuando el navegador no usa JavaScript |
 | `herramientas/actualizar_registros.py` | Pasa los registros nuevos del formulario al Excel de la tienda (no se publica) |
 | `netlify.toml` | Le dice a Netlify que publique la carpeta `sitio` |
