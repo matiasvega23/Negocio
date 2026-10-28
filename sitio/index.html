@@ -89,6 +89,15 @@
         <svg class="corona-portada" viewBox="0 0 60 42" aria-hidden="true"><use href="#i-corona"/></svg>
         <h1 id="titulo-portada"><span class="oculto">Angie's Secret</span><span class="logo-portada" aria-hidden="true"><span class="parte rosa">Angie<svg class="apos" viewBox="0 0 30 44"><use href="#i-etiqueta"/></svg>s</span><span class="parte">Secret</span></span></h1>
         <p class="bajada">Lencería y ropa para mujer y hombre. Atendemos en Renca hace más de 14 años y enviamos a todo Chile.</p>
+        <form class="buscador-portada" id="buscador-portada" role="search" action="#catalogo">
+          <label class="control-titulo" for="buscar-portada">¿Qué estás buscando?</label>
+          <div class="campo-buscar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-lupa"/></svg>
+            <input id="buscar-portada" type="search" placeholder="Ej: brasier, pijama polar, calzas" autocomplete="off" enterkeyhint="search" aria-controls="sugerencias-portada">
+            <button type="submit" class="boton boton-principal boton-chico">Buscar</button>
+          </div>
+          <div class="sugerencias" id="sugerencias-portada" aria-live="polite" hidden></div>
+        </form>
       </div>
       <figure class="vitrina">
         <div class="vitrina-marco">
@@ -161,7 +170,8 @@
           </div>
         </div>
       </div>
-      <p class="resumen" id="resumen" aria-live="polite"></p>
+      <div class="avanzar"><button type="button" class="boton boton-principal" id="avanzar-catalogo">Avanzar</button></div>
+      <p class="resumen" id="resumen" aria-live="polite" tabindex="-1"></p>
       <div id="listado"></div>
     </div>
   </section>
@@ -194,14 +204,14 @@
     </div>
   </section>
 
-  <section class="encargo" aria-labelledby="titulo-encargo">
+  <section class="encargo" id="encargo" aria-labelledby="titulo-encargo">
     <div class="envoltura">
       <div>
         <h2 class="titulo" id="titulo-encargo">¿Buscas algo que no ves aquí?</h2>
         <p>En la tienda hay mucho más de lo que cabe en esta página. Y si no lo tenemos, lo traemos a pedido: cuéntanos qué buscas, la talla y el color.</p>
       </div>
       <div class="acciones">
-        <a class="boton boton-wsp" data-wsp="Hola Angie's Secret 👋 Estoy buscando: " href="https://wa.me/56995709114" target="_blank" rel="noopener">
+        <a class="boton boton-wsp" id="encargo-wsp" data-wsp="Hola Angie's Secret 👋 Estoy buscando: " href="https://wa.me/56995709114" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Pedir algo especial
         </a>
       </div>

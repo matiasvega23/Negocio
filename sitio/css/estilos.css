@@ -132,6 +132,24 @@ button { font: inherit; }
 .campo-buscar svg { position: absolute; left: 14px; top: 50%; width: 22px; height: 22px; margin-top: -11px; color: var(--suave); pointer-events: none; }
 .campo-buscar input { width: 100%; min-height: 54px; padding: .6em 1em .6em 2.8em; border: 2px solid var(--linea); border-radius: 12px; background: #fff; color: var(--tinta); font: 1.0625rem var(--f-txt); }
 .campo-buscar input:focus { border-color: var(--noche); }
+/* Buscador de la portada */
+.buscador-portada { margin-top: 22px; max-width: 560px; }
+.buscador-portada .campo-buscar { display: flex; gap: 8px; align-items: stretch; }
+.buscador-portada .campo-buscar input { flex: 1 1 auto; min-width: 0; }
+.buscador-portada .campo-buscar .boton { flex: 0 0 auto; }
+.sugerencias { margin-top: 10px; padding: 14px; border: 2px solid var(--linea); border-radius: 14px; background: #fff; box-shadow: 0 14px 30px -22px rgba(28, 39, 84, .6); }
+.sugerencias .entendimos { margin: 0 0 10px; color: var(--suave); }
+.sugerencias .entendimos strong { color: var(--noche); }
+.sugerencias .sin-resultado { margin: 0 0 12px; }
+.sugerencias-lista { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 4px; }
+.sugerencias-lista button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 6px; border: 0; border-radius: 10px; background: none; color: var(--noche); font: 700 1rem var(--f-txt); text-align: left; cursor: pointer; }
+.sugerencias-lista button:hover, .sugerencias-lista button:focus-visible { background: var(--rubor); }
+.sugerencias-lista img { width: 44px; height: 55px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; }
+.sugerencias > .boton { width: 100%; }
+.acciones-sugerencia { display: grid; gap: 6px; }
+.avanzar { margin: 14px 0 4px; }
+.avanzar .boton { width: 100%; max-width: 560px; }
+#resumen:focus { outline: none; }
 .resumen { margin: 22px 0 0; color: var(--suave); font-size: 1rem; }
 .grupo { margin-top: 34px; }
 .grupo h3 { margin: 0 0 18px; padding-bottom: 8px; border-bottom: 2px solid var(--noche); font: 700 2rem/1.05 var(--f-tit); color: var(--noche); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }

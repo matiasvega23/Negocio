@@ -55,6 +55,144 @@ function actualizarLetrero() {
   const tr = document.querySelector(`.horario tr[data-dia="${fila}"]`); if (tr) tr.classList.add("hoy");
 }
 
+/* ---------- Buscador inteligente ----------
+   Entiende palabras mal escritas, sinónimos y para quién es la prenda, y siempre busca
+   dentro del catálogo. Si no encuentra nada, se ofrece pedirlo por WhatsApp. */
+const PARADAS = new Set("de del la el los las lo un una unos unas y o e a al con sin para por en que quiero queria busco buscando necesito tienen tiene tendran hay venden vende algo alguna alguno algun me mi mis tu su porfa favor hola buenas buenos dias tardes tipo como muy mas talla tallas color colores ropa prenda prendas unidad unidades".split(" "));
+const PUBLICO = {
+  mujer: "mujer mujeres dama damas senora senoras femenino femenina ella",
+  hombre: "hombre hombres varon varones caballero caballeros masculino masculina",
+  ninos: "nino nina ninos ninas infantil infantiles guagua guaguas bebe bebes hijo hija hijos hijas kids"
+};
+// Grupos de palabras que significan lo mismo. La primera parte es cómo se lo explicamos a la persona.
+const GRUPOS = [
+  ["sostenes", "sosten sostenes brasier brasieres bracier brassier bra bras sujetador sujetadores corpino corpinos peto"],
+  ["calzones", "calzon calzones bombacha bombachas tanga tangas colales colaless cachetero cacheteros bikini"],
+  ["bóxer y slip", "boxer boxers slip slips calzoncillo calzoncillos"],
+  ["fajas", "faja fajas reductor reductora modelador modeladora cinturilla cinturillas body bodys"],
+  ["pijamas", "pijama pijamas piyama piyamas pyjama camison camisones bata batas babydoll dormir"],
+  ["calzas", "calza calzas leggins leggings licra lycra"],
+  ["pantalones y buzos", "pantalon pantalones buzo buzos jogger joggers jeans cargo palazzo"],
+  ["poleras", "polera poleras remera remeras camiseta camisetas playera playeras beatle"],
+  ["blusas", "blusa blusas"],
+  ["vestidos", "vestido vestidos solera soleras tunica tunicas enterito enteritos jumpsuit kimono"],
+  ["chalecos, sweaters y polerones", "chaleco chalecos sweater sweaters sueter sueters cardigan poleron polerones hoodie chaqueta"],
+  ["polar y térmico", "polar polares chiporro termico termica termicos termicas abrigado abrigada"],
+  ["calcetas", "calceta calcetas calcetin calcetines soquete soquetes"],
+  ["pantys", "panty pantys medias"],
+  ["gorros", "gorro gorros beanie"],
+  ["bufandas", "bufanda bufandas"],
+  ["banano", "banano bananos canguro rinonera koala"],
+  // "Lencería" abarca sostenes, calzones, fajas y conjuntos (las palabras exactas se resuelven antes en su propio grupo).
+  ["lencería", "lenceria encaje sexy sosten sostenes calzon calzones faja fajas"],
+  ["ropa interior", "interior"]
+];
+function fon(palabra) {
+  let s = norm(palabra).replace(/[^a-z]/g, "");
+  s = s.replace(/ch/g, "1").replace(/h/g, "").replace(/ll/g, "y").replace(/v/g, "b").replace(/w/g, "u").replace(/z/g, "s")
+    .replace(/c([ei])/g, "s$1").replace(/qu/g, "k").replace(/c/g, "k").replace(/1/g, "ch").replace(/g([ei])/g, "j$1")
+    .replace(/x/g, "ks").replace(/(.)\1+/g, "$1");
+  if (s.length > 3 && s.endsWith("s")) s = s.slice(0, -1);
+  if (s.length > 3 && /[^aeiou]e$/.test(s)) s = s.slice(0, -1);
+  return s.replace(/y$/, "i");
+}
+function distancia(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 9;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+    const c = a[i - 1] === b[j - 1] ? 0 : 1;
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+  }
+  return d[a.length][b.length];
+}
+// Cuántas letras puede tener mal una palabra según su largo (las cortas deben venir bien escritas).
+const tolerancia = n => n <= 4 ? 0 : n <= 6 ? 1 : n <= 9 ? 2 : 3;
+let indice = null;
+function crearIndice() {
+  const palabras = texto => norm(texto).split(/[^a-z]+/).filter(w => w.length > 1 && !PARADAS.has(w));
+  const vocab = new Map();
+  const conjunto = texto => { const s = new Set(); palabras(texto).forEach(w => { const f = fon(w); if (f.length < 2) return; s.add(f); if (!vocab.has(f)) vocab.set(f, w); }); return s; };
+  const nombreCat = Object.fromEntries(CATEGORIAS);
+  const productos = PRODUCTOS.map(p => ({ p, campos: [[conjunto(p.n), 3], [conjunto(p.k || ""), 2.5], [conjunto(nombreCat[p.cat] || ""), 2], [conjunto(p.d), 1], [conjunto((p.col || []).join(" ")), 1]] }));
+  const grupos = GRUPOS.map(([etiqueta, ws]) => ({ etiqueta, f: new Set(ws.split(" ").map(fon)) }));
+  const publico = Object.entries(PUBLICO).map(([clave, ws]) => ({ clave, f: new Set(ws.split(" ").map(fon)) }));
+  indice = { productos, grupos, publico, vocab };
+}
+// Busca a qué se refiere una palabra: grupo de sinónimos, palabra del catálogo, corrección o comienzo de palabra.
+function entenderPalabra(w) {
+  const f = fon(w);
+  const g = indice.grupos.find(x => x.f.has(f));
+  if (g) return { terminos: g.f, etiqueta: g.etiqueta, tipo: norm(w) === norm(g.etiqueta) ? "igual" : "sinonimo", prenda: true };
+  if (indice.vocab.has(f)) return { terminos: new Set([f]), etiqueta: indice.vocab.get(f), tipo: "igual" };
+  const tol = tolerancia(f.length);
+  if (tol) {
+    let mejor = null, dMin = tol + 1;
+    for (const x of indice.grupos) for (const t of x.f) { const d = distancia(f, t); if (d < dMin) { dMin = d; mejor = { terminos: x.f, etiqueta: x.etiqueta, tipo: "corregida", prenda: true }; } }
+    for (const [t, original] of indice.vocab) { const d = distancia(f, t); if (d < dMin) { dMin = d; mejor = { terminos: new Set([t]), etiqueta: original, tipo: "corregida" }; } }
+    if (mejor) return mejor;
+  }
+  if (f.length >= 3) {
+    const empiezan = new Set(), etiquetas = [];
+    let prenda = false;
+    for (const x of indice.grupos) if ([...x.f].some(t => t.startsWith(f))) { x.f.forEach(t => empiezan.add(t)); etiquetas.push(x.etiqueta); prenda = true; }
+    for (const [t, original] of indice.vocab) if (t.startsWith(f)) { empiezan.add(t); if (etiquetas.length < 3 && !etiquetas.includes(original)) etiquetas.push(original); }
+    if (empiezan.size) return { terminos: empiezan, etiqueta: etiquetas.slice(0, 3).join(" o "), tipo: "comienzo", prenda };
+  }
+  return null;
+}
+const cacheBusqueda = new Map();
+function buscarInteligente(consulta) {
+  const q = String(consulta || "").trim();
+  if (cacheBusqueda.has(q)) return cacheBusqueda.get(q);
+  if (!indice) crearIndice();
+  const texto = norm(q).replace(/ropa interior/g, "interior").replace(/baby ?doll/g, "babydoll").replace(/cuello (alto|tortuga)/g, "beatle");
+  const palabras = texto.split(/[^a-z]+/).filter(w => w.length > 1 && !PARADAS.has(w));
+  let publico = null;
+  const contenido = [];
+  for (const w of palabras) {
+    const f = fon(w), aud = indice.publico.find(x => x.f.has(f));
+    if (aud) publico = aud.clave; else contenido.push(w);
+  }
+  const entendido = [], desconocidas = [], usadas = [];
+  for (const w of contenido) {
+    const r = entenderPalabra(w);
+    if (!r) { desconocidas.push(w); continue; }
+    usadas.push(r);
+    entendido.push(r.tipo === "igual" ? r.etiqueta : `«${w}» = ${r.etiqueta}`);
+  }
+  let lista;
+  if (publico === "ninos") {
+    // Regla de la marca: la ropa para niños se muestra siempre aparte, nunca junto a lencería.
+    lista = PRODUCTOS.filter(p => p.para.includes("ninos"));
+  } else if (!usadas.length) {
+    lista = publico && !desconocidas.length ? PRODUCTOS.filter(p => p.para.includes(publico)) : [];
+  } else if (desconocidas.length && usadas.every(u => u.tipo === "corregida" || u.tipo === "comienzo")) {
+    // Hay palabras que no conocemos y el resto son solo parecidos: mejor ofrecer pedirlo que mostrar algo que no es.
+    lista = [];
+  } else {
+    const pesos = indice.productos.map(({ p, campos }) => ({ p, w: usadas.map(u => {
+      let mejor = 0;
+      for (const [set, peso] of campos) if (peso > mejor && [...u.terminos].some(t => set.has(t))) mejor = peso;
+      return mejor;
+    }) }));
+    // Si la persona nombró un tipo de prenda, solo cuentan las prendas de ese tipo (por nombre o palabra clave;
+    // si ninguna lo tiene así, por la categoría). Las demás palabras (color, tela, largo) solo ordenan.
+    const minimo = usadas.map((u, i) => !u.prenda ? 0 : pesos.some(x => x.w[i] >= 2.5) ? 2.5 : 2);
+    const puntajes = pesos.filter(x => x.w.every((w, i) => w >= minimo[i]))
+      .map(x => ({ p: x.p, total: x.w.reduce((a, b) => a + b, 0) }))
+      .filter(x => x.total && (!publico || x.p.para.includes(publico)));
+    // Se muestran las prendas que más coinciden y las que tienen al menos la mitad de ese puntaje, de mayor a menor.
+    const tope = Math.max(0, ...puntajes.map(x => x.total));
+    lista = puntajes.filter(x => x.total >= tope * 0.5).sort((a, b) => b.total - a.total).map(x => x.p);
+  }
+  if (publico) entendido.push(publico === "ninos" ? "ropa para niños" : `para ${publico}`);
+  const r = { q, lista, ids: new Set(lista.map(p => p.id)), entendido, desconocidas, publico, regalo: /\bregalo/.test(texto) };
+  cacheBusqueda.set(q, r);
+  return r;
+}
+
 /* ---------- Catálogo ---------- */
 const params = new URLSearchParams(location.search);
 const temporadaAuto = m => (m >= 4 && m <= 8) ? "invierno" : (m >= 10 || m <= 2) ? "verano" : "todo";
@@ -69,10 +207,7 @@ const NOMBRE_P = { mujer: " para mujer", hombre: " para hombre", ninos: " para n
 function visible(p) {
   if (estado.temporada !== "todo" && p.t !== "todo" && p.t !== estado.temporada) return false;
   if (estado.para !== "todos" && !p.para.includes(estado.para)) return false;
-  if (estado.q) {
-    const texto = norm([p.n, p.d, p.k || "", (p.col || []).join(" ")].join(" "));
-    if (!norm(estado.q).split(/\s+/).filter(Boolean).every(w => texto.includes(w))) return false;
-  }
+  if (estado.q && !buscarInteligente(estado.q).ids.has(p.id)) return false;
   return true;
 }
 function textoTallas(p) {
@@ -116,13 +251,15 @@ function pintar() {
     html += `<section class="grupo" aria-labelledby="g-${cat}"><h3 id="g-${cat}">${nombre}<small>${items.length} ${items.length === 1 ? "producto" : "productos"}</small></h3><ul class="productos">${items.map(tarjeta).join("")}</ul></section>`;
   }
   if (!lista.length) {
-    const busca = estado.q ? `“${esc(estado.q)}”` : "eso";
-    html = `<div class="vacio"><p>No encontramos ${busca} con estos filtros. Prueba con “Todo” en temporada, o escríbenos y lo buscamos para ti.</p>
-      <a class="boton boton-wsp" href="${wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${estado.q}`)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Preguntar por WhatsApp</a></div>`;
+    const busca = estado.q ? `«${esc(estado.q)}»` : "eso";
+    html = `<div class="vacio"><p>No encontramos ${busca} con estos filtros. Prueba con “Todo” en temporada. En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.</p>
+      <a class="boton boton-wsp" href="${wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${estado.q || ""}`)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>${estado.q ? `Pedir «${esc(estado.q)}» por WhatsApp` : "Preguntar por WhatsApp"}</a></div>`;
   }
   $("#listado").innerHTML = html;
   const t = estado.temporada === "todo" ? "de todas las temporadas" : `${NOMBRE_T[estado.temporada]} y para todo el año`;
-  $("#resumen").textContent = lista.length ? `Mostrando ${lista.length} ${lista.length === 1 ? "producto" : "productos"}${NOMBRE_P[estado.para]} ${t}.` : "";
+  const entendido = estado.q ? buscarInteligente(estado.q).entendido : [];
+  $("#resumen").textContent = lista.length ? `${estado.q ? `Buscaste «${estado.q}»${entendido.length ? ` (entendimos: ${entendido.join(", ")})` : ""}. ` : ""}Mostrando ${lista.length} ${lista.length === 1 ? "producto" : "productos"}${NOMBRE_P[estado.para]} ${t}.` : "";
+  $("#avanzar-catalogo").textContent = lista.length ? `Avanzar: ver ${lista.length === 1 ? "1 prenda" : `${lista.length} prendas`}` : "Avanzar";
   const u = new URL(location.href);
   u.searchParams.set("temporada", estado.temporada);
   estado.para === "todos" ? u.searchParams.delete("para") : u.searchParams.set("para", estado.para);
@@ -134,6 +271,45 @@ document.querySelectorAll("[data-para]").forEach(b => b.addEventListener("click"
 let espera;
 $("#buscar").addEventListener("input", e => { clearTimeout(espera); espera = setTimeout(() => { estado.q = e.target.value.trim(); pintar(); }, 180); });
 $("#listado").addEventListener("click", e => { const b = e.target.closest("[data-abrir]"); if (b) abrirProducto(b.dataset.abrir); });
+$("#avanzar-catalogo").addEventListener("click", () => { const r = $("#resumen"); r.scrollIntoView({ block: "start" }); r.focus({ preventScroll: true }); });
+
+/* ---------- Buscador de la portada ---------- */
+const formPortada = $("#buscador-portada"), panelPortada = $("#sugerencias-portada");
+function pedirPorWhatsApp(q) { return wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${q}`); }
+function irAlCatalogo(r) {
+  estado.temporada = "todo";
+  estado.para = r.publico || "todos";
+  estado.q = r.q;
+  $("#buscar").value = r.q;
+  pintar();
+  const res = $("#resumen"); res.scrollIntoView({ block: "start" }); res.focus({ preventScroll: true });
+}
+function pintarSugerencias(q) {
+  if (q.length < 2) { panelPortada.hidden = true; panelPortada.innerHTML = ""; return; }
+  const r = buscarInteligente(q);
+  const encargo = $("#encargo-wsp"); if (encargo) encargo.href = pedirPorWhatsApp(q);
+  const entendimos = r.entendido.length ? `<p class="entendimos">Entendimos: <strong>${r.entendido.map(esc).join(" · ")}</strong></p>` : "";
+  const regalo = r.regalo ? `<p class="letra-chica">¿Es para regalo? <a href="#regalo">Arma tu regalo</a>: envoltorio sin costo hasta 3 prendas pidiendo desde la página.</p>` : "";
+  if (!r.lista.length) {
+    panelPortada.innerHTML = `${entendimos}<p class="sin-resultado">No encontramos «${esc(q)}» en el catálogo de la página. En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.</p>
+      <div class="acciones-sugerencia"><a class="boton boton-wsp" href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Pedir «${esc(q)}» por WhatsApp</a><a class="boton-texto" href="#encargo">Ver pedidos especiales</a></div>`;
+  } else {
+    const n = r.lista.length;
+    panelPortada.innerHTML = `${entendimos}<ul class="sugerencias-lista">${r.lista.slice(0, 4).map(p => `<li><button type="button" data-abrir-sugerencia="${p.id}"><img src="${foto(p.fotos[0])}" alt="" width="44" height="55" loading="lazy" decoding="async"><span>${esc(p.n)}</span></button></li>`).join("")}</ul>
+      ${regalo}<button type="submit" class="boton boton-principal">Ver ${n === 1 ? "el resultado" : `los ${n} resultados`} en el catálogo</button>
+      ${r.desconocidas.length ? `<p class="letra-chica">No reconocimos «${esc(r.desconocidas.join(" "))}». Si buscas algo más específico, <a href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener">pregúntanos por WhatsApp</a>.</p>` : ""}`;
+  }
+  panelPortada.hidden = false;
+}
+let esperaPortada;
+$("#buscar-portada").addEventListener("input", e => { clearTimeout(esperaPortada); esperaPortada = setTimeout(() => pintarSugerencias(e.target.value.trim()), 150); });
+formPortada.addEventListener("submit", e => {
+  e.preventDefault();
+  const q = $("#buscar-portada").value.trim(); if (!q) return;
+  const r = buscarInteligente(q);
+  if (r.lista.length) irAlCatalogo(r); else pintarSugerencias(q);
+});
+panelPortada.addEventListener("click", e => { const b = e.target.closest("[data-abrir-sugerencia]"); if (b) abrirProducto(b.dataset.abrirSugerencia); });
 
 /* ---------- Ficha del producto ---------- */
 let actual = null;
@@ -287,7 +463,7 @@ function mensajePedido() {
   if (datosCliente.regalo) extra.push("Envolver para regalo: sí (pedido desde la página; envoltorio sin costo hasta 3 prendas)");
   if (datosCliente.nombre) extra.push(`Nombre: ${datosCliente.nombre}`);
   if (datosCliente.nota) extra.push(`Comentario: ${datosCliente.nota}`);
-  const cierre = datosCliente.bienvenida
+  const cierre = datosCliente.bienvenida && registroVigente()
     ? [lineaBienvenida(), "", "¿Me confirman disponibilidad y el precio con el descuento? ¡Muchas gracias!"]
     : ["¿Me confirman disponibilidad y precio? Gracias."];
   return ["Hola Angie's Secret 👋 Quiero hacer este pedido:", "", ...lineas, "", ...extra, "", ...cierre].join("\n");
@@ -316,10 +492,10 @@ function pintarPedido() {
       </div>
     </fieldset>
     <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>Envolver para regalo (sin costo hasta 3 prendas, pidiendo desde esta página)</span></label></div>
-    <div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 15% desde $50.000)</span></label></div>
-    <p class="letra-chica" id="aviso-registro" ${datosCliente.bienvenida ? "hidden" : ""}>¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe hasta un 15% de descuento.</p>
+    ${registroVigente() ? `<div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 15% desde $50.000)</span></label></div>` : ""}
+    ${registro ? "" : `<p class="letra-chica">¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe hasta un 15% de descuento.</p>`}
     <div class="campo" id="campo-comuna" ${datosCliente.entrega === "envio" ? "" : "hidden"}><label for="comuna">Comuna y ciudad</label><input id="comuna" value="${esc(datosCliente.comuna)}" placeholder="Ej: Maipú, Santiago" autocomplete="address-level2"></div>
-    <div class="campo"><label for="nombre">Tu nombre (opcional)</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="given-name"></div>
+    <div class="campo"><label for="nombre">Tu nombre</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="name" required aria-describedby="error-nombre"><p class="registro-error" id="error-nombre" role="alert" hidden>Escribe tu nombre para que sepamos quién hace el pedido.</p></div>
     <div class="campo"><label for="nota">Comentario (opcional)</label><textarea id="nota" placeholder="Ej: es para regalo">${esc(datosCliente.nota)}</textarea></div>
     <div class="ficha-acciones">
       <a class="boton boton-wsp" id="enviar-pedido" href="${wspUrl(mensajePedido())}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Enviar pedido por WhatsApp</a>
@@ -347,10 +523,18 @@ $("#pedido").addEventListener("click", e => {
     return;
   }
   if (e.target.closest("#enviar-pedido")) {
+    if (!datosCliente.nombre.trim()) {
+      e.preventDefault();
+      $("#error-nombre").hidden = false;
+      const campo = $("#nombre"); campo.setAttribute("aria-invalid", "true"); campo.focus();
+      return;
+    }
+    const vigente = registroVigente();
     // El enlace abre WhatsApp con el mensaje ya armado; después se vacía el pedido en esta página.
-    ultimoPedido = { hora: Date.now(), items: pedido.map(x => ({ ...x })), bienvenida: datosCliente.bienvenida };
+    ultimoPedido = { hora: Date.now(), items: pedido.map(x => ({ ...x })), bienvenida: datosCliente.bienvenida && vigente, vigente };
     try { localStorage.setItem("angie-ultimo-pedido", JSON.stringify(ultimoPedido)); } catch (e2) {}
-    if (datosCliente.bienvenida) marcarBienvenidaUsada();
+    // Es la primera compra desde el registro: el descuento ya no vuelve a aparecer en este navegador.
+    if (vigente) marcarBienvenidaUsada();
     setTimeout(() => {
       pedido = []; guardar(); pintarBarra();
       $("#pedido").innerHTML = `<h2 id="pedido-titulo">¡Tu pedido se abrió en WhatsApp!</h2><p class="intro" style="margin-top:12px">Solo falta que toques enviar en WhatsApp. Vaciamos tu pedido en esta página para que la próxima vez empieces de cero.</p><button type="button" class="boton boton-principal" data-ir-catalogo>Seguir viendo el catálogo</button><button type="button" class="boton-texto" data-recuperar>¿No alcanzaste a enviarlo? Recuperar mi pedido</button>`;
@@ -359,7 +543,7 @@ $("#pedido").addEventListener("click", e => {
   }
   if (e.target.closest("[data-recuperar]") && ultimoPedido) {
     pedido = ultimoPedido.items.map(x => ({ ...x }));
-    if (ultimoPedido.bienvenida && registro) { delete registro.usado; guardarRegistro(); datosCliente.bienvenida = true; }
+    if ((ultimoPedido.vigente ?? ultimoPedido.bienvenida) && registro) { delete registro.usado; guardarRegistro(); datosCliente.bienvenida = !!ultimoPedido.bienvenida; }
     ultimoPedido = null; try { localStorage.removeItem("angie-ultimo-pedido"); } catch (e2) {}
     guardar(); pintarBarra(); pintarPedido(); return;
   }
@@ -370,10 +554,10 @@ $("#pedido").addEventListener("input", e => {
   const t = e.target;
   if (t.name === "entrega") { datosCliente.entrega = t.value; $("#campo-comuna").hidden = t.value !== "envio"; }
   if (t.id === "comuna") datosCliente.comuna = t.value;
-  if (t.id === "nombre") datosCliente.nombre = t.value;
+  if (t.id === "nombre") { datosCliente.nombre = t.value; if (t.value.trim()) { $("#error-nombre").hidden = true; t.removeAttribute("aria-invalid"); } }
   if (t.id === "nota") datosCliente.nota = t.value;
   if (t.id === "envolver") datosCliente.regalo = t.checked;
-  if (t.id === "bienvenida") { datosCliente.bienvenida = t.checked; $("#aviso-registro").hidden = t.checked; }
+  if (t.id === "bienvenida") datosCliente.bienvenida = t.checked;
   const a = $("#enviar-pedido"); if (a) a.href = wspUrl(mensajePedido());
 });
 
