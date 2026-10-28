@@ -250,8 +250,19 @@ const guardar = () => { try { localStorage.setItem("angie-pedido", JSON.stringif
 // Registro del 10% de bienvenida: se recuerda en este navegador para que el pedido lo pida solo.
 let registro = null;
 try { registro = JSON.parse(localStorage.getItem("angie-registro") || "null"); } catch (e) { registro = null; }
-const LINEA_BIENVENIDA = "Me registré en la página, así que quiero usar mi 10% de descuento de bienvenida en esta primera compra 😊";
-const datosCliente = { nombre: registro ? `${registro.nombre} ${registro.apellido}` : "", entrega: "retiro", comuna: "", nota: "", regalo: false, bienvenida: !!registro };
+// El 10% se puede usar durante 1 mes desde el registro (bases de la promoción).
+function unMesDespues(fecha) {
+  const [a, m, d] = fecha.split("-").map(Number);
+  const a2 = m === 12 ? a + 1 : a, m2 = m === 12 ? 1 : m + 1;
+  const ultimo = new Date(Date.UTC(a2, m2, 0)).getUTCDate();
+  return `${a2}-${String(m2).padStart(2, "0")}-${String(Math.min(d, ultimo)).padStart(2, "0")}`;
+}
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const fechaLarga = f => { const [a, m, d] = f.split("-").map(Number); return `${d} de ${MESES[m - 1]} de ${a}`; };
+const fechaCorta = f => f.split("-").reverse().join("/");
+const registroVigente = () => !!(registro && registro.fecha && ahora().fecha <= unMesDespues(registro.fecha));
+const lineaBienvenida = () => `Me registré en la página${registro && registro.fecha ? ` el ${fechaCorta(registro.fecha)}` : ""}, así que quiero usar mi 10% de descuento de bienvenida en esta primera compra 😊`;
+const datosCliente = { nombre: registro ? `${registro.nombre} ${registro.apellido}` : "", entrega: "retiro", comuna: "", nota: "", regalo: false, bienvenida: registroVigente() };
 
 function agregar(item) {
   const igual = pedido.find(x => x.id === item.id && x.talla === item.talla && x.color === item.color);
@@ -274,7 +285,7 @@ function mensajePedido() {
   if (datosCliente.nombre) extra.push(`Nombre: ${datosCliente.nombre}`);
   if (datosCliente.nota) extra.push(`Comentario: ${datosCliente.nota}`);
   const cierre = datosCliente.bienvenida
-    ? [LINEA_BIENVENIDA, "", "¿Me confirman disponibilidad y el precio con el descuento? ¡Muchas gracias!"]
+    ? [lineaBienvenida(), "", "¿Me confirman disponibilidad y el precio con el descuento? ¡Muchas gracias!"]
     : ["¿Me confirman disponibilidad y precio? Gracias."];
   return ["Hola Angie's Secret 👋 Quiero hacer este pedido:", "", ...lineas, "", ...extra, "", ...cierre].join("\n");
 }
@@ -295,7 +306,7 @@ function pintarPedido() {
       </div>
     </fieldset>
     <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>Envolver para regalo (sin costo)</span></label></div>
-    <div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi 10% de bienvenida en esta primera compra</span></label></div>
+    <div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi 10% de bienvenida en esta primera compra (desde $15.000)</span></label></div>
     ${datosCliente.bienvenida ? "" : `<p class="letra-chica">¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe un 10% de descuento.</p>`}
     <div class="campo" id="campo-comuna" ${datosCliente.entrega === "envio" ? "" : "hidden"}><label for="comuna">Comuna y ciudad</label><input id="comuna" value="${esc(datosCliente.comuna)}" placeholder="Ej: Maipú, Santiago" autocomplete="address-level2"></div>
     <div class="campo"><label for="nombre">Tu nombre (opcional)</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="given-name"></div>
@@ -431,8 +442,8 @@ function pintarCuentaRegalo() {
   $("#regalo-cuenta").textContent = nombres.length ? `Elegiste ${nombres.length} de ${MAX_REGALO}: ${nombres.join(", ")}.` : `Todavía no eliges prendas. Puedes elegir hasta ${MAX_REGALO}.`;
   const detalle = $("#regalo-detalle").value.trim();
   const texto = nombres.length
-    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto:", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), ...(registro ? [LINEA_BIENVENIDA, ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
-    : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?${registro ? `\n\n${LINEA_BIENVENIDA}` : ""}`;
+    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto:", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), ...(registroVigente() ? [lineaBienvenida(), ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
+    : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?${registroVigente() ? `\n\n${lineaBienvenida()}` : ""}`;
   $("#regalo-enviar").href = wspUrl(texto);
 }
 document.querySelectorAll("[data-regalo-para]").forEach(b => b.addEventListener("click", () => { regalo.para = b.dataset.regaloPara; pintarRegalo(); }));
@@ -504,7 +515,14 @@ function telefonoChileno(valor) {
 function mostrarRegistroListo(nombre) {
   formRegistro.hidden = true;
   $("#registro-listo").hidden = false;
+  const vence = registro && registro.fecha ? unMesDespues(registro.fecha) : null;
+  if (vence && !registroVigente()) {
+    $("#registro-listo-titulo").textContent = `${nombre ? nombre + ", tu" : "Tu"} 10% de bienvenida venció el ${fechaLarga(vence)}.`;
+    $("#registro-listo-detalle").textContent = "Igual te esperamos en la tienda y por WhatsApp. Si te registraste para recibir promociones, te avisaremos de las próximas.";
+    return;
+  }
   $("#registro-listo-titulo").textContent = `¡Listo${nombre ? ", " + nombre : ""}! Tu 10% de bienvenida quedó registrado.`;
+  if (vence) $("#registro-listo-detalle").textContent = `Tienes hasta el ${fechaLarga(vence)} para usarlo en una compra de $15.000 o más en prendas. Cuando hagas tu primer pedido por WhatsApp desde el número que registraste, el mensaje que se arma en esta página pedirá tu descuento. Si nos escribes directo, solo recuérdanos que te registraste.`;
 }
 if (formRegistro) {
   if (registro) mostrarRegistroListo(registro.nombre);
