@@ -40,12 +40,12 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 | `herramientas/actualizar_registros.py` | Pasa los registros nuevos del formulario al Excel de la tienda (no se publica) |
 | `netlify.toml` | Le dice a Netlify que publique la carpeta `sitio` |
 
-## Registro con 10% de bienvenida
+## Registro con descuento de bienvenida
 
 - El formulario `registro` del sitio guarda cada registro en Netlify (Forms). No pide RUT ni datos de pago.
 - Los registros se pasan al Excel `Registros 10% bienvenida - Angie's Secret.xlsx`, en la carpeta de la tienda del computador familiar, con `herramientas/actualizar_registros.py`. El programa no duplica filas (usa el ID del registro), no toca las columnas amarillas que completa la tienda y marca en Notas si un teléfono se repite.
 - El Excel tiene datos personales: nunca se sube a este repositorio, que es público.
-- Bases: registro hasta el 31 de enero de 2027; el 10% vale 1 mes desde el registro; compra mínima de $15.000 en prendas, sin envío; una vez por persona y número.
+- Bases (versión 2): 10% si las prendas suman desde $15.000 y 20% desde $50.000, sin contar el envío; vale 1 mes desde el registro; registro hasta el 31 de enero de 2027; una vez por persona y número.
 
 ## Reglas de la marca
 
