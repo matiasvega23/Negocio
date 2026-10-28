@@ -85,8 +85,8 @@ button { font: inherit; }
 .vitrina-foto img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
 @media (min-width: 900px) { .vitrina-foto { max-height: 640px; } }
 .vitrina figcaption { margin-top: 10px; font-size: 1rem; color: var(--suave); }
-.letrero { position: absolute; bottom: 22px; left: calc(50% - 125px); width: 250px; z-index: 2; }
-@media (max-width: 639px) { .letrero { bottom: 12px; transform: scale(.78); transform-origin: 50% 100%; } }
+.letrero { position: absolute; top: 16px; left: calc(50% - 125px); width: 250px; z-index: 2; }
+@media (max-width: 639px) { .letrero { top: 10px; transform: scale(.78); transform-origin: 50% 0; } }
 .letrero-gira { transform-origin: 125px 8px; animation: vaiven 2.2s cubic-bezier(.3, .7, .3, 1) .3s both; }
 @keyframes vaiven { 0% { transform: rotate(-9deg); } 30% { transform: rotate(6deg); } 55% { transform: rotate(-3deg); } 78% { transform: rotate(1.2deg); } 100% { transform: rotate(0); } }
 .letrero svg { display: block; width: 250px; height: 62px; }
@@ -380,3 +380,21 @@ legend { font-weight: 700; color: var(--noche); margin-bottom: 8px; padding: 0; 
   .regalo-opcion:hover { transform: none; }
   .barra-pedido.pulso { animation: none; }
 }
+
+/* Versión 4.3: quiénes somos (misión, visión y valores) y tercera foto del local. */
+.nosotros { padding: 56px 0; background: #fff; border-top: 1px solid var(--linea); }
+.nosotros-historia { max-width: 760px; margin: 0; font-size: 1.2rem; }
+.nosotros-pilares { display: grid; gap: 18px; margin: 28px 0 36px; }
+@media (min-width: 760px) { .nosotros-pilares { grid-template-columns: 1fr 1fr; gap: 24px; } }
+.nosotros-pilares article { background: var(--papel); border: 1px solid var(--linea); border-top: 6px solid var(--frambuesa); border-radius: 16px; padding: 20px 24px 24px; }
+.nosotros-pilares article:nth-child(2) { border-top-color: var(--oro); }
+.nosotros-pilares h3, .nosotros-sub { margin: 0 0 8px; font: 700 1.8rem/1.1 var(--f-tit); color: var(--noche); }
+.nosotros-pilares p { margin: 0; font-size: 1.15rem; }
+.valores { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 16px; }
+@media (min-width: 620px) { .valores { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1040px) { .valores { grid-template-columns: repeat(4, 1fr); } }
+.valores li { background: var(--rubor); border-radius: 14px; padding: 16px 18px; }
+.valores strong { display: block; color: var(--noche); font-size: 1.15rem; margin-bottom: 4px; }
+.valores span { color: var(--suave); }
+@media (min-width: 900px) { .conoce-fotos { grid-template-columns: repeat(3, 1fr); max-width: none; } }
+.conoce figure:nth-child(3) img { object-position: 50% 0; }
