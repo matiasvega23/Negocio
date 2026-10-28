@@ -268,6 +268,10 @@ legend { font-weight: 700; color: var(--noche); margin-bottom: 8px; padding: 0; 
 .lista-pedido img { width: 56px; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 8px; }
 .lista-pedido strong { display: block; color: var(--noche); line-height: 1.25; }
 .lista-pedido span { font-size: .9375rem; color: var(--suave); }
+.lista-pedido .cantidad-chica { margin-top: 6px; border-radius: 10px; }
+.cantidad-chica button { width: 44px; height: 40px; }
+.cantidad-chica button:disabled { opacity: .35; cursor: default; }
+.cantidad-chica output { min-width: 32px; font-size: 1.05rem; }
 .entrega { display: grid; gap: 8px; }
 .entrega .opcion span { width: 100%; }
 
@@ -400,7 +404,7 @@ legend { font-weight: 700; color: var(--noche); margin-bottom: 8px; padding: 0; 
 @media (min-width: 900px) { .conoce-fotos { grid-template-columns: repeat(3, 1fr); max-width: none; } }
 .conoce figure:nth-child(3) img { object-position: 50% 0; }
 
-/* Versión 4.4: registro con descuento de bienvenida (10% o 20%). */
+/* Versión 4.4: registro con descuento de bienvenida (10% o 15%). */
 .promo-registro { flex: 1 1 100%; margin: 6px 0 0; }
 .promo-registro a { display: inline-block; color: var(--noche); text-decoration-color: var(--frambuesa); text-underline-offset: 4px; font-size: 1.05rem; }
 .promo-registro strong { color: var(--frambuesa); }

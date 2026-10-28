@@ -27,12 +27,12 @@ const FERIADOS = {
 // "enlace" puede ser una sección (#regalo), un producto (?producto=ID) o "wsp:" + mensaje para abrir WhatsApp.
 // Para un período sin día fijo, usar "inicio" y "fin" en vez de "fecha" y "desde" (no muestra cuenta regresiva).
 const FECHAS_COMERCIALES = [
-  { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Envolvemos tus regalos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
-  { nombre: "el Día de los Enamorados", fecha: "2027-02-14", desde: 25, texto: "Conjuntos de lencería y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Pide desde la página y te envolvemos hasta 3 prendas sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "el Día de los Enamorados", fecha: "2027-02-14", desde: 25, texto: "Conjuntos de lencería y hasta 3 prendas envueltas sin costo pidiendo desde la página.", boton: "Arma tu regalo", enlace: "#regalo" },
   { nombre: "Vuelta a clases", inicio: "2027-02-15", fin: "2027-03-15", texto: "Vuelta a clases: pantys escolares y calcetas para el colegio.", boton: "Consultar por WhatsApp", enlace: "wsp:Hola Angie's Secret 👋 Busco pantys escolares. ¿Qué colores y tallas tienen?" },
-  { nombre: "el Día de la Madre", fecha: "2027-05-09", desde: 30, texto: "Pijamas, lencería y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
-  { nombre: "el Día del Padre", fecha: "2027-06-20", desde: 30, texto: "Pijamas, polares y regalos envueltos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
-  { nombre: "Navidad", fecha: "2027-12-25", desde: 60, texto: "Envolvemos tus regalos sin costo.", boton: "Arma tu regalo", enlace: "#regalo" }
+  { nombre: "el Día de la Madre", fecha: "2027-05-09", desde: 30, texto: "Pijamas, lencería y hasta 3 prendas envueltas sin costo pidiendo desde la página.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "el Día del Padre", fecha: "2027-06-20", desde: 30, texto: "Pijamas, polares y hasta 3 prendas envueltas sin costo pidiendo desde la página.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Navidad", fecha: "2027-12-25", desde: 60, texto: "Pide desde la página y te envolvemos hasta 3 prendas sin costo.", boton: "Arma tu regalo", enlace: "#regalo" }
 ];
 
 // Productos que aparecen en "Arma tu regalo" (se filtran por temporada y por para quién es).

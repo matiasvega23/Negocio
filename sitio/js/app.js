@@ -247,7 +247,7 @@ function abrirProducto(id) {
 let pedido = [];
 try { pedido = JSON.parse(localStorage.getItem("angie-pedido") || "[]"); } catch (e) { pedido = []; }
 const guardar = () => { try { localStorage.setItem("angie-pedido", JSON.stringify(pedido)); } catch (e) {} };
-// Registro del descuento de bienvenida (10% o 20%): se recuerda en este navegador para que el pedido lo pida solo.
+// Registro del descuento de bienvenida (10% o 15%): se recuerda en este navegador para que el pedido lo pida solo.
 let registro = null;
 try { registro = JSON.parse(localStorage.getItem("angie-registro") || "null"); } catch (e) { registro = null; }
 // El descuento se puede usar durante 1 mes desde el registro (bases de la promoción).
@@ -260,8 +260,11 @@ function unMesDespues(fecha) {
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const fechaLarga = f => { const [a, m, d] = f.split("-").map(Number); return `${d} de ${MESES[m - 1]} de ${a}`; };
 const fechaCorta = f => f.split("-").reverse().join("/");
-const registroVigente = () => !!(registro && registro.fecha && ahora().fecha <= unMesDespues(registro.fecha));
-const lineaBienvenida = () => `Me registré en la página${registro && registro.fecha ? ` el ${fechaCorta(registro.fecha)}` : ""}, así que quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 20% desde $50.000) 😊`;
+const registroVigente = () => !!(registro && registro.fecha && !registro.usado && ahora().fecha <= unMesDespues(registro.fecha));
+function guardarRegistro() { try { localStorage.setItem("angie-registro", JSON.stringify(registro)); } catch (e) {} }
+// Al enviar un pedido que pide el descuento, se anota en este navegador para no volver a pedirlo solo.
+function marcarBienvenidaUsada() { if (registro && !registro.usado) { registro.usado = ahora().fecha; guardarRegistro(); } datosCliente.bienvenida = false; }
+const lineaBienvenida = () => `Me registré en la página${registro && registro.fecha ? ` el ${fechaCorta(registro.fecha)}` : ""}, así que quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 15% desde $50.000) 😊`;
 const datosCliente = { nombre: registro ? `${registro.nombre} ${registro.apellido}` : "", entrega: "retiro", comuna: "", nota: "", regalo: false, bienvenida: registroVigente() };
 
 function agregar(item) {
@@ -281,7 +284,7 @@ function mensajePedido() {
   const lineas = pedido.map((x, i) => `${i + 1}. ${x.n}: ${detalleItem(x)}`);
   const entrega = datosCliente.entrega === "envio" ? `Envío a ${datosCliente.comuna || "(comuna y ciudad)"}` : "Retiro en la tienda";
   const extra = [`Entrega: ${entrega}`];
-  if (datosCliente.regalo) extra.push("Envolver para regalo: sí");
+  if (datosCliente.regalo) extra.push("Envolver para regalo: sí (pedido desde la página; envoltorio sin costo hasta 3 prendas)");
   if (datosCliente.nombre) extra.push(`Nombre: ${datosCliente.nombre}`);
   if (datosCliente.nota) extra.push(`Comentario: ${datosCliente.nota}`);
   const cierre = datosCliente.bienvenida
@@ -289,25 +292,32 @@ function mensajePedido() {
     : ["¿Me confirman disponibilidad y precio? Gracias."];
   return ["Hola Angie's Secret 👋 Quiero hacer este pedido:", "", ...lineas, "", ...extra, "", ...cierre].join("\n");
 }
+const MAX_CANT = 20;
+const textoCuenta = n => `${n} ${n === 1 ? "producto" : "productos"}. Revisa y envíalo por WhatsApp.`;
+const detalleSinCantidad = x => [x.talla && `Talla ${x.talla}`, x.color && `color ${x.color.toLowerCase()}`].filter(Boolean).join(", ");
+// Último pedido enviado a WhatsApp: se guarda un día por si la persona no alcanzó a enviarlo y quiere recuperarlo.
+let ultimoPedido = null;
+try { ultimoPedido = JSON.parse(localStorage.getItem("angie-ultimo-pedido") || "null"); } catch (e) { ultimoPedido = null; }
+if (ultimoPedido && Date.now() - ultimoPedido.hora > 864e5) ultimoPedido = null;
 function pintarPedido() {
   const n = pedido.reduce((s, x) => s + x.cantidad, 0);
   if (!n) {
-    $("#pedido").innerHTML = `<h2 id="pedido-titulo">Tu pedido</h2><p class="intro" style="margin-top:12px">Tu pedido está vacío. Agrega productos desde el catálogo.</p><button type="button" class="boton boton-principal" data-ir-catalogo>Ver el catálogo</button>`;
+    $("#pedido").innerHTML = `<h2 id="pedido-titulo">Tu pedido</h2><p class="intro" style="margin-top:12px">Tu pedido está vacío. Agrega productos desde el catálogo.</p><button type="button" class="boton boton-principal" data-ir-catalogo>Ver el catálogo</button>${ultimoPedido ? `<button type="button" class="boton-texto" data-recuperar>Recuperar el último pedido que enviaste</button>` : ""}`;
     return;
   }
   $("#pedido").innerHTML = `
     <h2 id="pedido-titulo">Tu pedido</h2>
-    <p class="letra-chica" style="margin-top:0">${n} ${n === 1 ? "producto" : "productos"}. Revisa y envíalo por WhatsApp.</p>
-    <ul class="lista-pedido">${pedido.map((x, i) => `<li><img src="${foto(x.foto)}" alt=""><div><strong>${esc(x.n)}</strong><span>${esc(detalleItem(x))}</span></div><button type="button" class="boton-texto" data-quitar="${i}" aria-label="Quitar ${esc(x.n)}">Quitar</button></li>`).join("")}</ul>
+    <p class="letra-chica" style="margin-top:0" id="pedido-cuenta">${textoCuenta(n)}</p>
+    <ul class="lista-pedido">${pedido.map((x, i) => `<li><img src="${foto(x.foto)}" alt=""><div><strong>${esc(x.n)}</strong>${detalleSinCantidad(x) ? `<span>${esc(detalleSinCantidad(x))}</span>` : ""}<div class="cantidad cantidad-chica" role="group" aria-label="Cantidad de ${esc(x.n)}"><button type="button" data-mover="${i}" data-paso="-1" aria-label="Una menos" ${x.cantidad <= 1 ? "disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menos"/></svg></button><output aria-live="polite">${x.cantidad}</output><button type="button" data-mover="${i}" data-paso="1" aria-label="Una más" ${x.cantidad >= MAX_CANT ? "disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-mas"/></svg></button></div></div><button type="button" class="boton-texto" data-quitar="${i}" aria-label="Quitar ${esc(x.n)}">Quitar</button></li>`).join("")}</ul>
     <fieldset><legend>¿Cómo lo recibes?</legend>
       <div class="entrega">
         <label class="opcion"><input type="radio" name="entrega" value="retiro" ${datosCliente.entrega === "retiro" ? "checked" : ""}><span>Retiro en la tienda, Renca</span></label>
         <label class="opcion"><input type="radio" name="entrega" value="envio" ${datosCliente.entrega === "envio" ? "checked" : ""}><span>Envío a domicilio (todo Chile)</span></label>
       </div>
     </fieldset>
-    <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>Envolver para regalo (sin costo)</span></label></div>
-    <div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 20% desde $50.000)</span></label></div>
-    <p class="letra-chica" id="aviso-registro" ${datosCliente.bienvenida ? "hidden" : ""}>¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe hasta un 20% de descuento.</p>
+    <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>Envolver para regalo (sin costo hasta 3 prendas, pidiendo desde esta página)</span></label></div>
+    <div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 15% desde $50.000)</span></label></div>
+    <p class="letra-chica" id="aviso-registro" ${datosCliente.bienvenida ? "hidden" : ""}>¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe hasta un 15% de descuento.</p>
     <div class="campo" id="campo-comuna" ${datosCliente.entrega === "envio" ? "" : "hidden"}><label for="comuna">Comuna y ciudad</label><input id="comuna" value="${esc(datosCliente.comuna)}" placeholder="Ej: Maipú, Santiago" autocomplete="address-level2"></div>
     <div class="campo"><label for="nombre">Tu nombre (opcional)</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="given-name"></div>
     <div class="campo"><label for="nota">Comentario (opcional)</label><textarea id="nota" placeholder="Ej: es para regalo">${esc(datosCliente.nota)}</textarea></div>
@@ -315,7 +325,7 @@ function pintarPedido() {
       <a class="boton boton-wsp" id="enviar-pedido" href="${wspUrl(mensajePedido())}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Enviar pedido por WhatsApp</a>
       <button type="button" class="boton-texto" id="vaciar">Vaciar pedido</button>
     </div>
-    <p class="letra-chica">Se abrirá WhatsApp con tu pedido ya escrito. Solo tienes que tocar enviar.</p>`;
+    <p class="letra-chica">Se abrirá WhatsApp con tu pedido ya escrito. Solo tienes que tocar enviar. Después tu pedido se vacía en esta página.</p>`;
 }
 function abrirPedido() { pintarPedido(); $("#ventana-pedido").showModal(); }
 $("#abrir-pedido").addEventListener("click", abrirPedido);
@@ -323,6 +333,36 @@ $("#pedido").addEventListener("click", e => {
   const q = e.target.closest("[data-quitar]");
   if (q) { pedido.splice(+q.dataset.quitar, 1); guardar(); pintarBarra(); pintarPedido(); return; }
   if (e.target.closest("#vaciar")) { pedido = []; guardar(); pintarBarra(); pintarPedido(); return; }
+  const m = e.target.closest("[data-mover]");
+  if (m) {
+    const x = pedido[+m.dataset.mover]; if (!x) return;
+    x.cantidad = Math.max(1, Math.min(MAX_CANT, x.cantidad + +m.dataset.paso));
+    guardar(); pintarBarra();
+    const li = m.closest("li");
+    li.querySelector("output").textContent = x.cantidad;
+    li.querySelector('[data-paso="-1"]').disabled = x.cantidad <= 1;
+    li.querySelector('[data-paso="1"]').disabled = x.cantidad >= MAX_CANT;
+    $("#pedido-cuenta").textContent = textoCuenta(pedido.reduce((s, y) => s + y.cantidad, 0));
+    $("#enviar-pedido").href = wspUrl(mensajePedido());
+    return;
+  }
+  if (e.target.closest("#enviar-pedido")) {
+    // El enlace abre WhatsApp con el mensaje ya armado; después se vacía el pedido en esta página.
+    ultimoPedido = { hora: Date.now(), items: pedido.map(x => ({ ...x })), bienvenida: datosCliente.bienvenida };
+    try { localStorage.setItem("angie-ultimo-pedido", JSON.stringify(ultimoPedido)); } catch (e2) {}
+    if (datosCliente.bienvenida) marcarBienvenidaUsada();
+    setTimeout(() => {
+      pedido = []; guardar(); pintarBarra();
+      $("#pedido").innerHTML = `<h2 id="pedido-titulo">¡Tu pedido se abrió en WhatsApp!</h2><p class="intro" style="margin-top:12px">Solo falta que toques enviar en WhatsApp. Vaciamos tu pedido en esta página para que la próxima vez empieces de cero.</p><button type="button" class="boton boton-principal" data-ir-catalogo>Seguir viendo el catálogo</button><button type="button" class="boton-texto" data-recuperar>¿No alcanzaste a enviarlo? Recuperar mi pedido</button>`;
+    }, 400);
+    return;
+  }
+  if (e.target.closest("[data-recuperar]") && ultimoPedido) {
+    pedido = ultimoPedido.items.map(x => ({ ...x }));
+    if (ultimoPedido.bienvenida && registro) { delete registro.usado; guardarRegistro(); datosCliente.bienvenida = true; }
+    ultimoPedido = null; try { localStorage.removeItem("angie-ultimo-pedido"); } catch (e2) {}
+    guardar(); pintarBarra(); pintarPedido(); return;
+  }
   if (e.target.closest("[data-ir-catalogo]")) { $("#ventana-pedido").close(); location.hash = "catalogo"; }
   if (e.target.closest("[data-ir-registro]")) { $("#ventana-pedido").close(); }
 });
@@ -442,8 +482,8 @@ function pintarCuentaRegalo() {
   $("#regalo-cuenta").textContent = nombres.length ? `Elegiste ${nombres.length} de ${MAX_REGALO}: ${nombres.join(", ")}.` : `Todavía no eliges prendas. Puedes elegir hasta ${MAX_REGALO}.`;
   const detalle = $("#regalo-detalle").value.trim();
   const texto = nombres.length
-    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto:", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), ...(registroVigente() ? [lineaBienvenida(), ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
-    : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?${registroVigente() ? `\n\n${lineaBienvenida()}` : ""}`;
+    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto (pedido desde la página):", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), ...(registroVigente() ? [lineaBienvenida(), ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
+    : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto desde la página${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?${registroVigente() ? `\n\n${lineaBienvenida()}` : ""}`;
   $("#regalo-enviar").href = wspUrl(texto);
 }
 document.querySelectorAll("[data-regalo-para]").forEach(b => b.addEventListener("click", () => { regalo.para = b.dataset.regaloPara; pintarRegalo(); }));
@@ -457,6 +497,7 @@ $("#regalo-opciones").addEventListener("click", e => {
   pintarCuentaRegalo();
 });
 $("#regalo-detalle").addEventListener("input", pintarCuentaRegalo);
+$("#regalo-enviar").addEventListener("click", () => { if (registroVigente()) { marcarBienvenidaUsada(); setTimeout(pintarCuentaRegalo, 400); } });
 
 /* ---------- Guía de tallas ---------- */
 let tallasDe = null;
@@ -502,7 +543,7 @@ $("#form-tallas").addEventListener("input", refrescarTallas);
 $("#form-tallas").addEventListener("submit", e => e.preventDefault());
 document.addEventListener("click", e => { const b = e.target.closest("[data-guia-tallas]"); if (b) abrirGuiaTallas(b.dataset.guiaTallas || ""); });
 
-/* ---------- Registro y descuento de bienvenida (10% o 20%) ----------
+/* ---------- Registro y descuento de bienvenida (10% o 15%) ----------
    El formulario lo guarda Netlify (Forms). Además se recuerda en este navegador
    para que el mensaje de WhatsApp pida el descuento solo. */
 const formRegistro = $("#form-registro");
@@ -516,13 +557,18 @@ function mostrarRegistroListo(nombre) {
   formRegistro.hidden = true;
   $("#registro-listo").hidden = false;
   const vence = registro && registro.fecha ? unMesDespues(registro.fecha) : null;
+  if (registro && registro.usado) {
+    $("#registro-listo-titulo").textContent = `${nombre ? nombre + ", ya" : "Ya"} pediste tu descuento de bienvenida.`;
+    $("#registro-listo-detalle").textContent = `Lo pediste en tu pedido por WhatsApp del ${fechaCorta(registro.usado)}. Te confirmamos el precio final por WhatsApp. Si no alcanzaste a enviar ese pedido, escríbenos y recuérdanos que te registraste.`;
+    return;
+  }
   if (vence && !registroVigente()) {
     $("#registro-listo-titulo").textContent = `${nombre ? nombre + ", tu" : "Tu"} descuento de bienvenida venció el ${fechaLarga(vence)}.`;
     $("#registro-listo-detalle").textContent = "Igual te esperamos en la tienda y por WhatsApp. Si te registraste para recibir promociones, te avisaremos de las próximas.";
     return;
   }
   $("#registro-listo-titulo").textContent = `¡Listo${nombre ? ", " + nombre : ""}! Tu descuento de bienvenida quedó registrado.`;
-  if (vence) $("#registro-listo-detalle").textContent = `Tienes hasta el ${fechaLarga(vence)} para usarlo: 10% en compras desde $15.000 y 20% desde $50.000, en prendas. Cuando hagas tu primer pedido por WhatsApp desde el número que registraste, el mensaje que se arma en esta página pedirá tu descuento. Si nos escribes directo, solo recuérdanos que te registraste.`;
+  if (vence) $("#registro-listo-detalle").textContent = `Tienes hasta el ${fechaLarga(vence)} para usarlo: 10% en compras desde $15.000 y 15% desde $50.000, en prendas. Cuando hagas tu primer pedido por WhatsApp desde el número que registraste, el mensaje que se arma en esta página pedirá tu descuento. Si nos escribes directo, solo recuérdanos que te registraste.`;
 }
 if (formRegistro) {
   if (registro) mostrarRegistroListo(registro.nombre);
