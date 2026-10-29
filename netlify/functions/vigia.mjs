@@ -7,11 +7,6 @@
 import { getStore } from "@netlify/blobs";
 import { ambiente, ahoraChile, azar, json, alertar, contar } from "../lib/comun.mjs";
 
-const SONDEOS = [
-  "/wp-login.php", "/wp-admin", "/wp-admin/*", "/wp-content/*", "/wp-includes/*", "/wp-config.php", "/xmlrpc.php",
-  "/.env", "/.env.*", "/.git/*", "/.aws/*", "/.DS_Store", "/phpmyadmin", "/phpmyadmin/*", "/admin", "/admin/*",
-  "/administrator/*", "/config.php", "/server-status", "/cgi-bin/*", "/vendor/*", "/backup.zip", "/shell.php"
-];
 const RUIDO = /^(chrome|moz|safari|ms-browser|webkit-masked)-extension|^about|^data|^blob/i;
 
 let enMinuto = 0, minuto = 0, sondeosInstancia = 0;
@@ -66,4 +61,12 @@ export default async (req) => {
   return new Response("No existe.", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
 };
 
-export const config = { path: ["/api/vigia", ...SONDEOS] };
+// Netlify lee esta lista tal cual (debe estar escrita aquí, sin variables): /api/vigia y las direcciones que prueban los robots.
+export const config = {
+  path: [
+    "/api/vigia",
+    "/wp-login.php", "/wp-admin", "/wp-admin/*", "/wp-content/*", "/wp-includes/*", "/wp-config.php", "/xmlrpc.php",
+    "/.env", "/.env.*", "/.git/*", "/.aws/*", "/.DS_Store", "/phpmyadmin", "/phpmyadmin/*", "/admin", "/admin/*",
+    "/administrator/*", "/config.php", "/server-status", "/cgi-bin/*", "/vendor/*", "/backup.zip", "/shell.php"
+  ]
+};
