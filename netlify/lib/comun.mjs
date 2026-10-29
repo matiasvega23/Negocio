@@ -75,7 +75,7 @@ export async function alertar(store, req, tipo, detalle) {
     await fetch(origen + "/", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ "form-name": "alerta", tipo, detalle: String(detalle).slice(0, 900), ambiente: amb, cuando: `${fecha} ${hora} (hora de Chile)`, sitio: origen }).toString()
+      body: new URLSearchParams({ "form-name": "alerta", subject: `ALERTA de seguridad en la página - Angie's Secret (${tipo}${amb === "prod" ? "" : ", " + amb})`, tipo, detalle: String(detalle).slice(0, 900), ambiente: amb, cuando: `${fecha} ${hora} (hora de Chile)`, sitio: origen }).toString()
     });
     await store.setJSON(`alertas/${amb}/${fecha}/${Date.now()}-${azar(3)}`, { tipo, detalle: String(detalle).slice(0, 300), hora });
     return true;

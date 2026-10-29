@@ -47,7 +47,7 @@ export default async () => {
   await fetch(sitio + "/", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ "form-name": "resumen", semana: `${porDia[0].fecha} al ${porDia[porDia.length - 1].fecha}`, resumen: lineas.join("\n") }).toString()
+    body: new URLSearchParams({ "form-name": "resumen", subject: "Resumen semanal de la página - Angie's Secret", semana: `${porDia[0].fecha} al ${porDia[porDia.length - 1].fecha}`, resumen: lineas.join("\n") }).toString()
   });
 };
 

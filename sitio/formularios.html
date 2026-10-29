@@ -8,10 +8,13 @@
 <body>
 <!-- Formularios que Netlify debe reconocer para que las funciones del servidor puedan enviar avisos por correo.
      No se muestran en el sitio. "alerta": avisos de seguridad. "resumen": resumen semanal de uso de la página. -->
+<!-- El campo "subject" define el asunto del correo que envía Netlify. -->
 <form name="alerta" method="POST" data-netlify="true" hidden>
+  <input type="hidden" name="subject" value="ALERTA de seguridad en la página - Angie's Secret">
   <input name="tipo"><input name="detalle"><input name="ambiente"><input name="cuando"><input name="sitio">
 </form>
 <form name="resumen" method="POST" data-netlify="true" hidden>
+  <input type="hidden" name="subject" value="Resumen semanal de la página - Angie's Secret">
   <input name="semana"><textarea name="resumen"></textarea>
 </form>
 <p>Página interna.</p>
