@@ -1,8 +1,8 @@
 """Huellas de los archivos del sitio, para compararlas con las que entrega /api/estado del sitio publicado.
 
 Uso: python3 herramientas/huellas.py sitio
-Imprime un JSON {"index.html": "16 caracteres", ...}. En los .html se ignoran el contenido de las etiquetas
-<form ...> y el destino de los href, porque Netlify los reescribe al publicar (igual que netlify/functions/estado.mjs).
+Imprime un JSON {"index.html": "16 caracteres", ...}. En los .html se ignora el contenido de las etiquetas
+<form ...>, porque Netlify las reescribe al publicar (igual que netlify/functions/estado.mjs).
 """
 import hashlib
 import json
@@ -15,8 +15,7 @@ raiz = Path(sys.argv[1] if len(sys.argv) > 1 else "sitio")
 
 
 def normalizar(t):
-    t = re.sub(r"<form\b[^>]*>", "<form>", t, flags=re.I)
-    return re.sub(r"""\shref=("[^"]*"|'[^']*')""", " href", t, flags=re.I)
+    return re.sub(r"<form\b[^>]*>", "<form>", t, flags=re.I)
 
 
 salida = {}

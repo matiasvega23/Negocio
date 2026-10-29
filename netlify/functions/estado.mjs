@@ -7,10 +7,10 @@ import { ambiente, ahoraChile, json, contar } from "../lib/comun.mjs";
 
 const ARCHIVOS = ["index.html", "js/app.js", "js/datos.js", "js/efectos.js", "css/estilos.css", "privacidad.html", "terminos.html", "panel.html"];
 
-// Netlify reescribe al publicar las etiquetas <form> (formularios) y los enlaces a páginas .html (direcciones "bonitas").
-// Por eso, en los .html la huella se calcula sin el contenido de <form ...> ni el destino de href. El resto
-// (textos, scripts, estilos) debe ser idéntico. herramientas/huellas.py calcula lo mismo desde el repositorio.
-const normalizar = t => t.replace(/<form\b[^>]*>/gi, "<form>").replace(/\shref=("[^"]*"|'[^']*')/gi, " href");
+// Netlify reescribe al publicar las etiquetas <form> (formularios) y los enlaces que terminan en .html. Por eso las
+// páginas enlazan sin ".html" (/privacidad, /terminos) y la huella de los .html se calcula sin el contenido de <form ...>.
+// Todo lo demás (textos, enlaces, scripts, estilos) debe ser idéntico. herramientas/huellas.py calcula lo mismo.
+const normalizar = t => t.replace(/<form\b[^>]*>/gi, "<form>");
 async function huella(texto) {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("").slice(0, 16);
