@@ -7,6 +7,10 @@ import { ambiente, ahoraChile, json, contar } from "../lib/comun.mjs";
 
 const ARCHIVOS = ["index.html", "js/app.js", "js/datos.js", "js/efectos.js", "css/estilos.css", "privacidad.html", "terminos.html", "panel.html"];
 
+// Netlify reescribe al publicar las etiquetas <form> (formularios) y los enlaces a páginas .html (direcciones "bonitas").
+// Por eso, en los .html la huella se calcula sin el contenido de <form ...> ni el destino de href. El resto
+// (textos, scripts, estilos) debe ser idéntico. herramientas/huellas.py calcula lo mismo desde el repositorio.
+const normalizar = t => t.replace(/<form\b[^>]*>/gi, "<form>").replace(/\shref=("[^"]*"|'[^']*')/gi, " href");
 async function huella(texto) {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("").slice(0, 16);
@@ -27,7 +31,7 @@ export default async (req) => {
       const r = await fetch(`${origen}/${a}`, { headers: { "Cache-Control": "no-cache" } });
       if (!r.ok) { archivos[a] = `error ${r.status}`; continue; }
       const t = await r.text();
-      archivos[a] = await huella(t);
+      archivos[a] = await huella(a.endsWith(".html") ? normalizar(t) : t);
       if (a === "index.html") {
         const m = t.match(/versión ([\d.]+)/i); version = m ? m[1] : null;
         const csp = r.headers.get("content-security-policy") || "";
