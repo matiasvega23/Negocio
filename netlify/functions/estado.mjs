@@ -16,11 +16,13 @@ async function huella(texto) {
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("").slice(0, 16);
 }
 
-export default async (req) => {
+export default async (req, context) => {
   const amb = ambiente(req);
   const store = getStore("vigia");
+  // Se guarda 10 minutos para que nadie pueda gastar créditos llamándola muchas veces; cada publicación nueva la renueva.
+  const publicacion = (context && context.deploy && context.deploy.id) || "x";
   const cache = await store.get(`estado-cache/${amb}`, { type: "json" });
-  if (cache && Date.now() - cache.t < 10 * 60e3) return json(cache.datos, 200, { "Access-Control-Allow-Origin": "*" });
+  if (cache && cache.publicacion === publicacion && Date.now() - cache.t < 10 * 60e3) return json(cache.datos, 200, { "Access-Control-Allow-Origin": "*" });
 
   const origen = new URL(req.url).origin;
   const { fecha, hora } = ahoraChile();
@@ -50,10 +52,10 @@ export default async (req) => {
     contar(bienvenida, `altas/${amb}/${fecha}/`)
   ]);
   const datos = {
-    ok: true, ambiente: amb, revisado: `${fecha} ${hora}`, version, archivos, cabeceras,
+    ok: true, ambiente: amb, revisado: `${fecha} ${hora}`, publicacion, version, archivos, cabeceras,
     hoy: { sondeos_de_robots: sondeos, avisos_csp: csp, textos_con_codigo: inyeccion, alertas_enviadas: alertas, registros_del_dia: altas >= 40 ? "alto" : "normal" }
   };
-  await store.setJSON(`estado-cache/${amb}`, { t: Date.now(), datos });
+  await store.setJSON(`estado-cache/${amb}`, { t: Date.now(), publicacion, datos });
   return json(datos, 200, { "Access-Control-Allow-Origin": "*" });
 };
 
