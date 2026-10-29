@@ -1,0 +1,9 @@
+{
+  "name": "angies-secret-sitio",
+  "private": true,
+  "description": "Sitio de Angie's Secret. Las funciones del servidor (netlify/functions) usan Netlify Blobs.",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

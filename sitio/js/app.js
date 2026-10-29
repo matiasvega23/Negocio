@@ -11,6 +11,13 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const wspUrl = texto => `https://wa.me/${TIENDA.whatsapp}?text=${encodeURIComponent(texto)}`;
+// WhatsApp de consultas: problemas con la página o un pedido, datos personales y lo que el ayudante no resuelve.
+const wspConsultas = texto => `https://wa.me/${TIENDA.whatsappConsultas}?text=${encodeURIComponent(texto)}`;
+// Medición anónima de uso (js/medicion.js). Si la persona pidió no ser medida, no hace nada.
+function medir(e, d) { try { if (window.__medir) window.__medir(e, d || {}); else (window.__colaMedir = window.__colaMedir || []).push([e, d || {}]); } catch (x) {} }
+// Textos con forma de código o comandos (intentos de ataque): se avisan al vigía y nunca se ejecutan.
+const PARECE_CODIGO = /<\s*\/?\s*(script|img|iframe|svg)|javascript:|\bon\w+\s*=|union\s+select|drop\s+table|\.\.\/|\$\{|\{\{|<\?php/i;
+function revisarTexto(texto, campo) { if (PARECE_CODIGO.test(String(texto))) { medir("inyeccion", { campo }); return true; } return false; }
 const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 const aMin = h => { const [a, b] = h.split(":").map(Number); return a * 60 + b; };
 
@@ -58,7 +65,7 @@ function actualizarLetrero() {
 /* ---------- Buscador inteligente ----------
    Entiende palabras mal escritas, sinónimos y para quién es la prenda, y siempre busca
    dentro del catálogo. Si no encuentra nada, se ofrece pedirlo por WhatsApp. */
-const PARADAS = new Set("de del la el los las lo un una unos unas y o e a al con sin para por en que quiero queria busco buscando necesito tienen tiene tendran hay venden vende algo alguna alguno algun me mi mis tu su porfa favor hola buenas buenos dias tardes tipo como muy mas talla tallas color colores ropa prenda prendas unidad unidades".split(" "));
+const PARADAS = new Set("de del la el los las lo un una unos unas y o e a al con sin para por en que quiero queria busco buscando necesito tienen tiene tendran hay venden vende algo alguna alguno algun me mi mis tu su porfa favor hola buenas buenos dias tardes tipo como muy mas talla tallas color colores ropa prenda prendas unidad unidades no si se me te le les nos es son esta estan este esto esa ese eso hace hacen puedo puede pueden podria quisiera gustaria saber cual cuales cuanto cuanta cuantos donde cuando sobre solo tambien ya aqui ahi ver tengo tenga".split(" "));
 const PUBLICO = {
   mujer: "mujer mujeres dama damas senora senoras femenino femenina ella",
   hombre: "hombre hombres varon varones caballero caballeros masculino masculina",
@@ -188,6 +195,8 @@ function buscarInteligente(consulta) {
     lista = puntajes.filter(x => x.total >= tope * 0.5).sort((a, b) => b.total - a.total).map(x => x.p);
   }
   if (publico) entendido.push(publico === "ninos" ? "ropa para niños" : `para ${publico}`);
+  // Regla de la marca: si la búsqueda es para niños, no se repite ninguna otra palabra (por ejemplo, de ropa interior).
+  if (publico === "ninos") entendido.splice(0, entendido.length, "ropa para niños");
   const r = { q, lista, ids: new Set(lista.map(p => p.id)), entendido, desconocidas, publico, regalo: /\bregalo/.test(texto) };
   cacheBusqueda.set(q, r);
   return r;
@@ -269,7 +278,14 @@ function pintar() {
 document.querySelectorAll("[data-temporada]").forEach(b => b.addEventListener("click", () => { estado.temporada = b.dataset.temporada; pintar(); }));
 document.querySelectorAll("[data-para]").forEach(b => b.addEventListener("click", () => { estado.para = b.dataset.para; pintar(); }));
 let espera;
-$("#buscar").addEventListener("input", e => { clearTimeout(espera); espera = setTimeout(() => { estado.q = e.target.value.trim(); pintar(); }, 180); });
+let esperaMedir;
+$("#buscar").addEventListener("input", e => {
+  clearTimeout(espera); espera = setTimeout(() => { estado.q = e.target.value.trim(); pintar(); }, 180);
+  clearTimeout(esperaMedir); esperaMedir = setTimeout(() => {
+    const q = e.target.value.trim(); if (q.length < 2) return;
+    revisarTexto(q, "catalogo"); medir("buscar", { q, res: buscarInteligente(q).lista.length, lugar: "catalogo" });
+  }, 1500);
+});
 $("#listado").addEventListener("click", e => { const b = e.target.closest("[data-abrir]"); if (b) abrirProducto(b.dataset.abrir); });
 $("#avanzar-catalogo").addEventListener("click", () => { const r = $("#resumen"); r.scrollIntoView({ block: "start" }); r.focus({ preventScroll: true }); });
 
@@ -289,7 +305,7 @@ function pintarSugerencias(q) {
   const r = buscarInteligente(q);
   const encargo = $("#encargo-wsp"); if (encargo) encargo.href = pedirPorWhatsApp(q);
   const entendimos = r.entendido.length ? `<p class="entendimos">Entendimos: <strong>${r.entendido.map(esc).join(" · ")}</strong></p>` : "";
-  const regalo = r.regalo ? `<p class="letra-chica">¿Es para regalo? <a href="#regalo">Arma tu regalo</a>: envoltorio sin costo hasta 3 prendas pidiendo desde la página.</p>` : "";
+  const regalo = r.regalo ? `<p class="letra-chica">¿Es para regalo? <a href="#regalo">Arma tu regalo</a>. ${esc(textoEnvoltorio("dato"))}</p>` : "";
   if (!r.lista.length) {
     panelPortada.innerHTML = `${entendimos}<p class="sin-resultado">No encontramos «${esc(q)}» en el catálogo de la página. En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.</p>
       <div class="acciones-sugerencia"><a class="boton boton-wsp" href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Pedir «${esc(q)}» por WhatsApp</a><a class="boton-texto" href="#encargo">Ver pedidos especiales</a></div>`;
@@ -307,6 +323,7 @@ formPortada.addEventListener("submit", e => {
   e.preventDefault();
   const q = $("#buscar-portada").value.trim(); if (!q) return;
   const r = buscarInteligente(q);
+  revisarTexto(q, "portada"); medir("buscar", { q, res: r.lista.length, lugar: "portada" });
   if (r.lista.length) irAlCatalogo(r); else pintarSugerencias(q);
 });
 panelPortada.addEventListener("click", e => { const b = e.target.closest("[data-abrir-sugerencia]"); if (b) abrirProducto(b.dataset.abrirSugerencia); });
@@ -316,6 +333,7 @@ let actual = null;
 function abrirProducto(id) {
   const p = PRODUCTOS.find(x => x.id === id); if (!p) return;
   actual = { p, cantidad: 1 };
+  medir("producto", { id: p.id });
   const imagenes = [...p.fotos.map(k => ({ src: foto(k), tipo: "foto" })), ...(p.afiches || []).map(a => ({ src: afiche(a), tipo: "afiche" }))];
   const tallas = p.tallas || null;
   $("#ficha").innerHTML = `
@@ -342,6 +360,7 @@ function abrirProducto(id) {
           <button type="button" class="boton-texto compartir" id="compartir"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1.1em;height:1.1em;vertical-align:-3px"><use href="#i-compartir"/></svg> Compartir este producto</button>
         </div>
         <p class="letra-chica">Te confirmamos disponibilidad y precio por WhatsApp.</p>
+        ${p.cat === "interior" ? `<p class="aviso-legal"><strong>Derecho a retracto:</strong> por higiene, la ropa interior no tiene derecho a retracto si se abrió o retiró su sello o envase de seguridad. <a href="terminos.html#cambios">Más información</a></p>` : ""}
       </form>
     </div>`;
   const f = $("#form-producto");
@@ -358,14 +377,17 @@ function abrirProducto(id) {
   f.addEventListener("input", refrescarPregunta);
   f.addEventListener("click", e => {
     const b = e.target.closest("[data-cant]"); if (!b) return;
-    actual.cantidad = Math.max(1, Math.min(20, actual.cantidad + +b.dataset.cant));
+    const antes = actual.cantidad;
+    actual.cantidad = Math.max(1, Math.min(MAX_CANT, actual.cantidad + +b.dataset.cant));
     $("#cant").textContent = actual.cantidad;
+    if (antes === MAX_CANT && +b.dataset.cant > 0) avisar("Para más de 20 unidades, consulta por venta por mayor");
   });
   f.addEventListener("submit", e => {
     e.preventDefault();
     const el = eleccion();
     const desde = $("#img-principal").getBoundingClientRect();
     agregar({ id: p.id, n: p.n, foto: p.fotos[0], talla: el.talla, color: el.color, cantidad: actual.cantidad });
+    medir("agregar", { id: p.id, n: actual.cantidad });
     $("#ventana-producto").close();
     volarAlPedido(foto(p.fotos[0]), desde);
     avisar(`Agregado a tu pedido: ${p.n}`);
@@ -424,8 +446,12 @@ let pedido = [];
 try { pedido = JSON.parse(localStorage.getItem("angie-pedido") || "[]"); } catch (e) { pedido = []; }
 const guardar = () => { try { localStorage.setItem("angie-pedido", JSON.stringify(pedido)); } catch (e) {} };
 // Registro del descuento de bienvenida (10% o 15%): se recuerda en este navegador para que el pedido lo pida solo.
+// Desde la versión 4.5 cada registro tiene un código (AS-XXXX-XXXX) que da el servidor y que también queda en el Excel.
+// El pedido pide el descuento si y solo si en este navegador hay un registro con código válido y sin usar.
 let registro = null;
 try { registro = JSON.parse(localStorage.getItem("angie-registro") || "null"); } catch (e) { registro = null; }
+// Los registros de prueba de versiones anteriores (sin código) ya no cuentan.
+if (registro && !registro.codigo && !registro.sinCodigo) { registro = null; try { localStorage.removeItem("angie-registro"); } catch (e) {} }
 // El descuento se puede usar durante 1 mes desde el registro (bases de la promoción).
 function unMesDespues(fecha) {
   const [a, m, d] = fecha.split("-").map(Number);
@@ -439,13 +465,52 @@ const fechaCorta = f => f.split("-").reverse().join("/");
 const registroVigente = () => !!(registro && registro.fecha && !registro.usado && ahora().fecha <= unMesDespues(registro.fecha));
 function guardarRegistro() { try { localStorage.setItem("angie-registro", JSON.stringify(registro)); } catch (e) {} }
 // Al enviar un pedido que pide el descuento, se anota en este navegador para no volver a pedirlo solo.
-function marcarBienvenidaUsada() { if (registro && !registro.usado) { registro.usado = ahora().fecha; guardarRegistro(); } datosCliente.bienvenida = false; }
-const lineaBienvenida = () => `Me registré en la página${registro && registro.fecha ? ` el ${fechaCorta(registro.fecha)}` : ""}, así que quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 15% desde $50.000) 😊`;
+function avisarServidor(accion) {
+  if (!registro || !registro.codigo) return;
+  try { fetch("/api/bienvenida", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accion, codigo: registro.codigo }), keepalive: true }).catch(() => {}); } catch (e) {}
+}
+function marcarBienvenidaUsada() { if (registro && !registro.usado) { registro.usado = ahora().fecha; guardarRegistro(); avisarServidor("usar"); } datosCliente.bienvenida = false; }
+const lineaBienvenida = () => `Me registré en la página${registro && registro.fecha ? ` el ${fechaCorta(registro.fecha)}` : ""}${registro && registro.codigo ? ` (código ${registro.codigo})` : ""}, así que quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 15% desde $50.000) 😊`;
+// Confirma con el servidor que el código existe. Si no existe (código inventado o borrado), se quita de este navegador.
+async function verificarRegistro() {
+  if (!registro || !registro.codigo) return;
+  try {
+    const r = await fetch(`/api/bienvenida?c=${encodeURIComponent(registro.codigo)}`, { cache: "no-store" });
+    if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return; // sin conexión con el servidor: se confía en el registro local
+    const d = await r.json();
+    if (!d.existe) { olvidarRegistro(); return; }
+    if (d.usado && !registro.usado) { registro.usado = d.usado; guardarRegistro(); datosCliente.bienvenida = false; }
+    registro.verificado = true; guardarRegistro();
+  } catch (e) {}
+}
+function olvidarRegistro() {
+  registro = null; datosCliente.bienvenida = false;
+  try { localStorage.removeItem("angie-registro"); } catch (e) {}
+  if (typeof pintarCuentaRegalo === "function") pintarCuentaRegalo();
+  const f = $("#form-registro"); if (f) { f.hidden = false; $("#registro-listo").hidden = true; }
+}
+// Envoltorio de regalo sin costo: hasta ENVOLTORIO.prendasGratis prendas y hasta ENVOLTORIO.gratisHasta (js/datos.js).
+const ORDINAL = { 2: "segunda", 3: "tercera", 4: "cuarta", 5: "quinta", 6: "sexta" };
+const envoltorioGratis = () => fechaHoy() <= ENVOLTORIO.gratisHasta;
+const diaMes = f => { const [, m, d] = f.split("-").map(Number); return `${d} de ${MESES[m - 1]}`; };
+function textoEnvoltorio(tipo) {
+  const g = envoltorioGratis(), n = ENVOLTORIO.prendasGratis, hasta = diaMes(ENVOLTORIO.gratisHasta), sig = ORDINAL[n + 1] || "siguiente";
+  if (!g) return tipo === "casilla" ? "Envolver para regalo (te cotizamos el envoltorio)" : "Te lo envolvemos para regalo. El costo del envoltorio te lo cotizamos por WhatsApp.";
+  if (tipo === "casilla") return `Envolver para regalo (sin costo hasta ${n} prendas, pidiendo desde esta página y hasta el ${hasta})`;
+  if (tipo === "regalo") return `Hasta el ${hasta}, el envoltorio es sin costo hasta ${n} prendas por pedido, solo si haces el pedido desde esta página; desde la ${sig} prenda, te lo cotizamos.`;
+  if (tipo === "faq") return `Hasta el ${hasta} envolvemos sin costo hasta ${n} prendas por pedido, solo si haces el pedido desde esta página. Desde la ${sig} prenda, el envoltorio se cotiza.`;
+  return `Sin costo hasta ${n} prendas por pedido, solo si pides desde esta página y hasta el ${hasta}.`;
+}
+function lineaEnvoltorio(unidades) {
+  const n = ENVOLTORIO.prendasGratis;
+  if (!envoltorioGratis()) return "Envolver para regalo: sí (¿me indican el costo del envoltorio?)";
+  return `Envolver para regalo: sí (pedido desde la página; envoltorio sin costo hasta ${n} prendas${unidades > n ? `. Son ${unidades} prendas: ¿me cotizan el envoltorio de las demás?` : ""})`;
+}
 const datosCliente = { nombre: registro ? `${registro.nombre} ${registro.apellido}` : "", entrega: "retiro", comuna: "", nota: "", regalo: false, bienvenida: registroVigente() };
 
 function agregar(item) {
   const igual = pedido.find(x => x.id === item.id && x.talla === item.talla && x.color === item.color);
-  if (igual) igual.cantidad += item.cantidad; else pedido.push(item);
+  if (igual) igual.cantidad = Math.min(MAX_CANT, igual.cantidad + item.cantidad); else pedido.push(item);
   guardar(); pintarBarra();
 }
 function pintarBarra() {
@@ -458,9 +523,9 @@ function detalleItem(x) {
 }
 function mensajePedido() {
   const lineas = pedido.map((x, i) => `${i + 1}. ${x.n}: ${detalleItem(x)}`);
-  const entrega = datosCliente.entrega === "envio" ? `Envío a ${datosCliente.comuna || "(comuna y ciudad)"}` : "Retiro en la tienda";
+  const entrega = datosCliente.entrega === "envio" ? `Envío a ${datosCliente.comuna || "(comuna y ciudad)"} (¿me indican el costo del envío?)` : "Retiro en la tienda";
   const extra = [`Entrega: ${entrega}`];
-  if (datosCliente.regalo) extra.push("Envolver para regalo: sí (pedido desde la página; envoltorio sin costo hasta 3 prendas)");
+  if (datosCliente.regalo) extra.push(lineaEnvoltorio(pedido.reduce((s, x) => s + x.cantidad, 0)));
   if (datosCliente.nombre) extra.push(`Nombre: ${datosCliente.nombre}`);
   if (datosCliente.nota) extra.push(`Comentario: ${datosCliente.nota}`);
   const cierre = datosCliente.bienvenida && registroVigente()
@@ -485,30 +550,40 @@ function pintarPedido() {
     <h2 id="pedido-titulo">Tu pedido</h2>
     <p class="letra-chica" style="margin-top:0" id="pedido-cuenta">${textoCuenta(n)}</p>
     <ul class="lista-pedido">${pedido.map((x, i) => `<li><img src="${foto(x.foto)}" alt=""><div><strong>${esc(x.n)}</strong>${detalleSinCantidad(x) ? `<span>${esc(detalleSinCantidad(x))}</span>` : ""}<div class="cantidad cantidad-chica" role="group" aria-label="Cantidad de ${esc(x.n)}"><button type="button" data-mover="${i}" data-paso="-1" aria-label="Una menos" ${x.cantidad <= 1 ? "disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menos"/></svg></button><output aria-live="polite">${x.cantidad}</output><button type="button" data-mover="${i}" data-paso="1" aria-label="Una más" ${x.cantidad >= MAX_CANT ? "disabled" : ""}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-mas"/></svg></button></div></div><button type="button" class="boton-texto" data-quitar="${i}" aria-label="Quitar ${esc(x.n)}">Quitar</button></li>`).join("")}</ul>
+    <p class="letra-chica hint-mayor" id="hint-mayor" ${pedido.some(x => x.cantidad >= MAX_CANT) ? "" : "hidden"}>¿Necesitas más de ${MAX_CANT} unidades de una prenda? <a href="${wspUrl("Hola Angie's Secret 👋 Quiero consultar por venta por mayor. Prendas, tallas y cantidades: ")}" target="_blank" rel="noopener" data-mayor>Consulta precio por mayor</a>.</p>
     <fieldset><legend>¿Cómo lo recibes?</legend>
       <div class="entrega">
         <label class="opcion"><input type="radio" name="entrega" value="retiro" ${datosCliente.entrega === "retiro" ? "checked" : ""}><span>Retiro en la tienda, Renca</span></label>
         <label class="opcion"><input type="radio" name="entrega" value="envio" ${datosCliente.entrega === "envio" ? "checked" : ""}><span>Envío a domicilio (todo Chile)</span></label>
       </div>
     </fieldset>
-    <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>Envolver para regalo (sin costo hasta 3 prendas, pidiendo desde esta página)</span></label></div>
+    <div class="campo" id="campo-comuna" ${datosCliente.entrega === "envio" ? "" : "hidden"}><label for="comuna">Comuna y ciudad</label><input id="comuna" value="${esc(datosCliente.comuna)}" placeholder="Ej: Maipú, Santiago" autocomplete="address-level2"><p class="nota-envio">El envío tiene un costo adicional según la comuna o región. Te lo confirmamos por WhatsApp antes de pagar.</p></div>
+    <div class="envolver"><label class="opcion"><input type="checkbox" id="envolver" ${datosCliente.regalo ? "checked" : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>${esc(textoEnvoltorio("casilla"))}</span></label></div>
     ${registroVigente() ? `<div class="envolver"><label class="opcion"><input type="checkbox" id="bienvenida" ${datosCliente.bienvenida ? "checked" : ""}><span>Me registré: quiero usar mi descuento de bienvenida en esta primera compra (10% desde $15.000 o 15% desde $50.000)</span></label></div>` : ""}
-    ${registro ? "" : `<p class="letra-chica">¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe hasta un 15% de descuento.</p>`}
-    <div class="campo" id="campo-comuna" ${datosCliente.entrega === "envio" ? "" : "hidden"}><label for="comuna">Comuna y ciudad</label><input id="comuna" value="${esc(datosCliente.comuna)}" placeholder="Ej: Maipú, Santiago" autocomplete="address-level2"></div>
+    ${registro ? `<p class="letra-chica registro-quien">Registro de bienvenida en este equipo: <strong>${esc(registro.nombre)} ${esc((registro.apellido || "").charAt(0))}.</strong>${registro.codigo ? `, código ${esc(registro.codigo)}` : ""}${registro.usado ? " (ya lo pediste)" : ""}. <button type="button" class="boton-texto en-linea" data-olvidar-registro>¿No eres tú? Quitar de este equipo</button></p>` : `<p class="letra-chica">¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe hasta un 15% de descuento.</p>`}
     <div class="campo"><label for="nombre">Tu nombre</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="name" required aria-describedby="error-nombre"><p class="registro-error" id="error-nombre" role="alert" hidden>Escribe tu nombre para que sepamos quién hace el pedido.</p></div>
     <div class="campo"><label for="nota">Comentario (opcional)</label><textarea id="nota" placeholder="Ej: es para regalo">${esc(datosCliente.nota)}</textarea></div>
+    <p class="aviso-legal"><strong>Derecho a retracto:</strong> si compras a distancia, tienes 10 días desde que recibes tu pedido para arrepentirte. Por higiene, no aplica a ropa interior ni trajes de baño si se abrió o retiró su sello o envase de seguridad. La garantía legal por fallas es de 6 meses. <a href="terminos.html#cambios">Ver términos</a></p>
     <div class="ficha-acciones">
       <a class="boton boton-wsp" id="enviar-pedido" href="${wspUrl(mensajePedido())}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Enviar pedido por WhatsApp</a>
+      <button type="button" class="boton-texto" id="copiar-pedido">Copiar mi pedido</button>
       <button type="button" class="boton-texto" id="vaciar">Vaciar pedido</button>
     </div>
-    <p class="letra-chica">Se abrirá WhatsApp con tu pedido ya escrito. Solo tienes que tocar enviar. Después tu pedido se vacía en esta página.</p>`;
+    <p class="letra-chica">Se abrirá WhatsApp con tu pedido ya escrito. Solo tienes que tocar enviar. Después tu pedido se vacía en esta página. Al enviarlo aceptas los <a href="terminos.html">términos y condiciones</a>.</p>`;
 }
-function abrirPedido() { pintarPedido(); $("#ventana-pedido").showModal(); }
+function abrirPedido() { pintarPedido(); $("#ventana-pedido").showModal(); medir("pedido_abrir"); }
+async function copiarTexto(texto) {
+  try { await navigator.clipboard.writeText(texto); avisar("Pedido copiado. Pégalo en un chat con el +56 9 9570 9114"); return true; }
+  catch (e) { avisar("No se pudo copiar. Escríbenos por WhatsApp al +56 9 9570 9114"); return false; }
+}
 $("#abrir-pedido").addEventListener("click", abrirPedido);
 $("#pedido").addEventListener("click", e => {
   const q = e.target.closest("[data-quitar]");
   if (q) { pedido.splice(+q.dataset.quitar, 1); guardar(); pintarBarra(); pintarPedido(); return; }
   if (e.target.closest("#vaciar")) { pedido = []; guardar(); pintarBarra(); pintarPedido(); return; }
+  if (e.target.closest("#copiar-pedido")) { copiarTexto(mensajePedido()); medir("ayudante_derivar", { canal: "copiar", tema: "pedido" }); return; }
+  if (e.target.closest("[data-copiar-ultimo]") && ultimoPedido && ultimoPedido.mensaje) { copiarTexto(ultimoPedido.mensaje); return; }
+  if (e.target.closest("[data-olvidar-registro]")) { olvidarRegistro(); pintarPedido(); avisar("Listo: quitamos el registro de este equipo. Tu código sigue sirviendo si lo escribes en tu pedido."); return; }
   const m = e.target.closest("[data-mover]");
   if (m) {
     const x = pedido[+m.dataset.mover]; if (!x) return;
@@ -518,6 +593,7 @@ $("#pedido").addEventListener("click", e => {
     li.querySelector("output").textContent = x.cantidad;
     li.querySelector('[data-paso="-1"]').disabled = x.cantidad <= 1;
     li.querySelector('[data-paso="1"]').disabled = x.cantidad >= MAX_CANT;
+    $("#hint-mayor").hidden = !pedido.some(y => y.cantidad >= MAX_CANT);
     $("#pedido-cuenta").textContent = textoCuenta(pedido.reduce((s, y) => s + y.cantidad, 0));
     $("#enviar-pedido").href = wspUrl(mensajePedido());
     return;
@@ -531,19 +607,22 @@ $("#pedido").addEventListener("click", e => {
     }
     const vigente = registroVigente();
     // El enlace abre WhatsApp con el mensaje ya armado; después se vacía el pedido en esta página.
-    ultimoPedido = { hora: Date.now(), items: pedido.map(x => ({ ...x })), bienvenida: datosCliente.bienvenida && vigente, vigente };
+    const unidades = pedido.reduce((s, x) => s + x.cantidad, 0);
+    medir("pedido_enviar", { prendas: pedido.length, unidades, envio: datosCliente.entrega === "envio", regalo: datosCliente.regalo, descuento: !!(datosCliente.bienvenida && vigente) });
+    ultimoPedido = { hora: Date.now(), items: pedido.map(x => ({ ...x })), bienvenida: datosCliente.bienvenida && vigente, vigente, mensaje: mensajePedido() };
     try { localStorage.setItem("angie-ultimo-pedido", JSON.stringify(ultimoPedido)); } catch (e2) {}
     // Es la primera compra desde el registro: el descuento ya no vuelve a aparecer en este navegador.
     if (vigente) marcarBienvenidaUsada();
     setTimeout(() => {
       pedido = []; guardar(); pintarBarra();
-      $("#pedido").innerHTML = `<h2 id="pedido-titulo">¡Tu pedido se abrió en WhatsApp!</h2><p class="intro" style="margin-top:12px">Solo falta que toques enviar en WhatsApp. Vaciamos tu pedido en esta página para que la próxima vez empieces de cero.</p><button type="button" class="boton boton-principal" data-ir-catalogo>Seguir viendo el catálogo</button><button type="button" class="boton-texto" data-recuperar>¿No alcanzaste a enviarlo? Recuperar mi pedido</button>`;
+      $("#pedido").innerHTML = `<h2 id="pedido-titulo">¡Tu pedido se abrió en WhatsApp!</h2><p class="intro" style="margin-top:12px">Solo falta que toques enviar en WhatsApp. Vaciamos tu pedido en esta página para que la próxima vez empieces de cero.</p><button type="button" class="boton boton-principal" data-ir-catalogo>Seguir viendo el catálogo</button><button type="button" class="boton-texto" data-recuperar>¿No alcanzaste a enviarlo? Recuperar mi pedido</button><button type="button" class="boton-texto" data-copiar-ultimo>¿No se abrió WhatsApp? Copiar el mensaje</button>`;
     }, 400);
     return;
   }
   if (e.target.closest("[data-recuperar]") && ultimoPedido) {
     pedido = ultimoPedido.items.map(x => ({ ...x }));
-    if ((ultimoPedido.vigente ?? ultimoPedido.bienvenida) && registro) { delete registro.usado; guardarRegistro(); datosCliente.bienvenida = !!ultimoPedido.bienvenida; }
+    if ((ultimoPedido.vigente ?? ultimoPedido.bienvenida) && registro) { delete registro.usado; guardarRegistro(); avisarServidor("liberar"); datosCliente.bienvenida = !!ultimoPedido.bienvenida; }
+    medir("pedido_recuperar");
     ultimoPedido = null; try { localStorage.removeItem("angie-ultimo-pedido"); } catch (e2) {}
     guardar(); pintarBarra(); pintarPedido(); return;
   }
@@ -646,7 +725,6 @@ function decorar() {
 
 /* ---------- Arma tu regalo ---------- */
 const regalo = { para: "mujer", elegidos: [] };
-const MAX_REGALO = 3;
 function opcionesRegalo() {
   return REGALOS.map(id => PRODUCTOS.find(p => p.id === id)).filter(Boolean)
     .filter(p => p.para.includes(regalo.para))
@@ -663,10 +741,13 @@ function pintarRegalo() {
 }
 function pintarCuentaRegalo() {
   const nombres = regalo.elegidos.map(id => PRODUCTOS.find(p => p.id === id)).filter(Boolean).map(p => p.n);
-  $("#regalo-cuenta").textContent = nombres.length ? `Elegiste ${nombres.length} de ${MAX_REGALO}: ${nombres.join(", ")}.` : `Todavía no eliges prendas. Puedes elegir hasta ${MAX_REGALO}.`;
+  const n = nombres.length, gratis = envoltorioGratis(), max = ENVOLTORIO.prendasGratis;
+  const notaEnvoltorio = !gratis ? " El envoltorio te lo cotizamos por WhatsApp." : n > max ? ` El envoltorio es sin costo para ${max} prendas; el de las demás te lo cotizamos.` : "";
+  $("#regalo-cuenta").textContent = n ? `Elegiste ${n} ${n === 1 ? "prenda" : "prendas"}: ${nombres.join(", ")}.${notaEnvoltorio}` : "Todavía no eliges prendas. Puedes elegir las que quieras.";
   const detalle = $("#regalo-detalle").value.trim();
-  const texto = nombres.length
-    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto (pedido desde la página):", "", ...nombres.map((n, i) => `${i + 1}. ${n}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), ...(registroVigente() ? [lineaBienvenida(), ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
+  const condicion = !gratis ? "¿Me indican el costo del envoltorio?" : n > max ? `Entiendo que el envoltorio es sin costo hasta ${max} prendas: ¿me cotizan el de las demás?` : "";
+  const texto = n
+    ? ["Hola Angie's Secret 👋 Quiero armar un regalo envuelto (pedido desde la página):", "", ...nombres.map((x, i) => `${i + 1}. ${x}`), "", ...(detalle ? [`Es para: ${detalle}`, ""] : []), ...(condicion ? [condicion, ""] : []), ...(registroVigente() ? [lineaBienvenida(), ""] : []), "¿Me ayudan con tallas, colores y precio? Gracias."].join("\n")
     : `Hola Angie's Secret 👋 Quiero armar un regalo envuelto desde la página${detalle ? ` (${detalle})` : ""}. ¿Me ayudan a elegir?${registroVigente() ? `\n\n${lineaBienvenida()}` : ""}`;
   $("#regalo-enviar").href = wspUrl(texto);
 }
@@ -675,13 +756,15 @@ $("#regalo-opciones").addEventListener("click", e => {
   const b = e.target.closest("[data-regalo]"); if (!b) return;
   const id = b.dataset.regalo, i = regalo.elegidos.indexOf(id);
   if (i >= 0) regalo.elegidos.splice(i, 1);
-  else if (regalo.elegidos.length >= MAX_REGALO) { avisar(`Puedes elegir hasta ${MAX_REGALO} prendas`); return; }
   else regalo.elegidos.push(id);
   b.setAttribute("aria-pressed", regalo.elegidos.includes(id));
   pintarCuentaRegalo();
 });
 $("#regalo-detalle").addEventListener("input", pintarCuentaRegalo);
-$("#regalo-enviar").addEventListener("click", () => { if (registroVigente()) { marcarBienvenidaUsada(); setTimeout(pintarCuentaRegalo, 400); } });
+$("#regalo-enviar").addEventListener("click", () => {
+  medir("regalo_enviar", { n: regalo.elegidos.length });
+  if (registroVigente()) { marcarBienvenidaUsada(); setTimeout(pintarCuentaRegalo, 400); }
+});
 
 /* ---------- Guía de tallas ---------- */
 let tallasDe = null;
@@ -724,6 +807,7 @@ function refrescarTallas() {
   $("#tallas-enviar").href = wspUrl(`Hola Angie's Secret 👋 Quiero saber mi talla.${partes.length ? ` Mis medidas: ${partes.join(", ")}.` : ""}${tallasDe ? ` Estoy viendo: ${tallasDe.n}.` : ""}${sug ? ` La guía me sugiere talla ${sug}.` : ""} ¿Qué talla me recomiendan?`);
 }
 $("#form-tallas").addEventListener("input", refrescarTallas);
+$("#tallas-enviar").addEventListener("click", () => medir("tallas"));
 $("#form-tallas").addEventListener("submit", e => e.preventDefault());
 document.addEventListener("click", e => { const b = e.target.closest("[data-guia-tallas]"); if (b) abrirGuiaTallas(b.dataset.guiaTallas || ""); });
 
@@ -740,6 +824,9 @@ function telefonoChileno(valor) {
 function mostrarRegistroListo(nombre) {
   formRegistro.hidden = true;
   $("#registro-listo").hidden = false;
+  const cod = $("#registro-codigo");
+  cod.hidden = !(registro && registro.codigo);
+  if (registro && registro.codigo) cod.innerHTML = `Tu código de bienvenida: <strong>${esc(registro.codigo)}</strong>. Guárdalo: si nos escribes desde otro equipo, anótalo en tu mensaje.`;
   const vence = registro && registro.fecha ? unMesDespues(registro.fecha) : null;
   if (registro && registro.usado) {
     $("#registro-listo-titulo").textContent = `${nombre ? nombre + ", ya" : "Ya"} pediste tu descuento de bienvenida.`;
@@ -768,10 +855,19 @@ if (formRegistro) {
     if (!formRegistro.checkValidity()) { formRegistro.reportValidity(); return; }
     const boton = $("#registro-enviar"); boton.disabled = true; boton.textContent = "Enviando…";
     try {
+      // 1) El servidor da un código único. Si no responde, el registro igual se guarda (sin código).
+      let codigo = "";
+      try {
+        const rc = await fetch("/api/bienvenida", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accion: "nuevo" }) });
+        if (rc.ok && (rc.headers.get("content-type") || "").includes("json")) codigo = (await rc.json()).codigo || "";
+      } catch (e4) {}
+      formRegistro.elements.codigo.value = codigo;
+      // 2) El registro va al formulario de Netlify, con el código.
       const r = await fetch("/", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(new FormData(formRegistro)).toString() });
       if (!r.ok) throw new Error(String(r.status));
       const f = formRegistro.elements;
-      registro = { nombre: f.nombre.value.trim(), apellido: f.apellido.value.trim(), telefono: tNorm, fecha: ahora().fecha };
+      registro = { nombre: f.nombre.value.trim(), apellido: f.apellido.value.trim(), fecha: ahora().fecha, codigo: codigo || null, sinCodigo: !codigo };
+      medir("registro", { ok: true });
       try { localStorage.setItem("angie-registro", JSON.stringify(registro)); } catch (e2) {}
       datosCliente.bienvenida = true;
       if (!datosCliente.nombre) datosCliente.nombre = `${registro.nombre} ${registro.apellido}`;
@@ -780,6 +876,7 @@ if (formRegistro) {
     } catch (e3) {
       err.textContent = "No pudimos guardar tu registro. Revisa tu conexión e inténtalo de nuevo, o escríbenos por WhatsApp.";
       err.hidden = false;
+      medir("registro", { ok: false });
     } finally {
       boton.disabled = false; boton.textContent = "Registrarme y obtener mi descuento";
     }
@@ -791,6 +888,67 @@ document.querySelectorAll("dialog").forEach(d => {
   d.addEventListener("click", e => { if (e.target === d || e.target.closest("[data-cerrar]")) d.close(); });
 });
 document.querySelectorAll("[data-wsp]").forEach(a => { a.href = wspUrl(a.dataset.wsp); });
+document.querySelectorAll("[data-wspc]").forEach(a => { a.href = wspConsultas(a.dataset.wspc); });
+document.querySelectorAll("[data-envoltorio]").forEach(s => { s.textContent = textoEnvoltorio(s.dataset.envoltorio); });
+// Qué botones de WhatsApp se usan más (sin el contenido del mensaje).
+const LUGAR_WSP = [["#ventana-pedido", "pedido"], ["#ventana-producto", "ficha"], ["#ventana-tallas", "tallas"], [".cabecera", "cabecera"], [".portada", "portada"], ["#regalo", "regalo"], ["#encargo", "encargo"], ["#visitanos", "visita"], ["#aviso-temporada", "aviso"], ["#ayudante", "ayudante"], ["#preguntas", "faq"], ["#sugerencias-portada", "sugerencia"], ["#listado", "vacio"]];
+document.addEventListener("click", e => {
+  const a = e.target.closest('a[href*="wa.me/"]'); if (!a) return;
+  if (a.matches("[data-mayor]")) medir("mayor");
+  const l = LUGAR_WSP.find(([s]) => a.closest(s));
+  medir("wsp", { lugar: a.matches("[data-mayor]") ? "mayor" : l ? l[1] : "otro" });
+}, true);
+
+/* ---------- Preguntas frecuentes ----------
+   Las preguntas están en js/datos.js (PREGUNTAS_FRECUENTES). El ayudante usa las mismas respuestas. */
+function destinoEnlace(dest, texto) {
+  const t = esc(texto);
+  if (dest.startsWith("wsp:")) return `<a href="${esc(wspUrl(dest.slice(4)))}" target="_blank" rel="noopener">${t}</a>`;
+  if (dest.startsWith("wspc:")) return `<a href="${esc(wspConsultas(dest.slice(5)))}" target="_blank" rel="noopener">${t}</a>`;
+  if (dest === "accion:tallas") return `<button type="button" class="boton-texto en-linea" data-guia-tallas>${t}</button>`;
+  if (dest === "accion:ayudante") return `<button type="button" class="boton-texto en-linea" data-abrir-ayudante>${t}</button>`;
+  if (/^(https?:|tel:|mailto:|#|[a-z0-9-]+\.html)/i.test(dest)) return `<a href="${esc(dest)}"${/^https?:/i.test(dest) ? ' target="_blank" rel="noopener"' : ""}>${t}</a>`;
+  return t;
+}
+// Convierte el formato simple de las respuestas (párrafos, viñetas, **negrita** y [enlaces](destino)) en HTML seguro.
+function formatearRespuesta(texto) {
+  const linea = s => s.split(/(\[[^\]]+\]\([^)]+\))/g).map(parte => {
+    const m = parte.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    return m ? destinoEnlace(m[2], m[1]) : esc(parte).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  }).join("");
+  return String(texto).replace("{envoltorio}", textoEnvoltorio("faq")).split(/\n\n+/).map(bloque => {
+    const filas = bloque.split("\n");
+    if (filas.every(f => f.startsWith("- "))) return `<ul>${filas.map(f => `<li>${linea(f.slice(2))}</li>`).join("")}</ul>`;
+    return `<p>${filas.map(linea).join("<br>")}</p>`;
+  }).join("");
+}
+let temaPreguntas = "todas";
+function pintarPreguntas() {
+  const filtros = $("#preguntas-filtros"), lista = $("#preguntas-lista");
+  if (!filtros || typeof PREGUNTAS_FRECUENTES === "undefined") return;
+  filtros.innerHTML = [["todas", "Todas"], ...CATEGORIAS_PREGUNTAS].map(([k, n]) => `<button type="button" data-tema-preguntas="${k}" aria-pressed="${k === temaPreguntas}">${esc(n)}</button>`).join("");
+  lista.innerHTML = CATEGORIAS_PREGUNTAS.filter(([k]) => temaPreguntas === "todas" || k === temaPreguntas).map(([k, n]) => {
+    const ps = PREGUNTAS_FRECUENTES.filter(q => q.cat === k);
+    if (!ps.length) return "";
+    return `<section class="preguntas-grupo" aria-labelledby="preguntas-${k}"><h3 id="preguntas-${k}">${esc(n)}</h3>${ps.map(q => `<details id="pregunta-${q.id}" data-pregunta="${q.id}"><summary>${esc(q.p)}</summary><div class="respuesta">${formatearRespuesta(q.r)}</div></details>`).join("")}</section>`;
+  }).join("");
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-tema-preguntas]");
+  if (b) { temaPreguntas = b.dataset.temaPreguntas; pintarPreguntas(); }
+});
+document.addEventListener("toggle", e => {
+  const d = e.target;
+  if (d.matches && d.matches("details[data-pregunta]") && d.open) medir("faq", { id: d.dataset.pregunta });
+}, true);
+function abrirPreguntaDelEnlace() {
+  const m = location.hash.match(/^#pregunta-([a-z0-9-]+)$/);
+  if (!m) return;
+  temaPreguntas = "todas"; pintarPreguntas();
+  const d = document.getElementById(`pregunta-${m[1]}`);
+  if (d) { d.open = true; d.scrollIntoView({ block: "start" }); }
+}
+window.addEventListener("hashchange", abrirPreguntaDelEnlace);
 let tAviso;
 function avisar(texto) {
   const a = $("#aviso"); a.textContent = texto; a.classList.add("ver");
@@ -804,4 +962,7 @@ pintarAvisoTemporada();
 decorar();
 pintar();
 pintarBarra();
+pintarPreguntas();
+abrirPreguntaDelEnlace();
+verificarRegistro();
 if (params.get("producto")) abrirProducto(params.get("producto"));

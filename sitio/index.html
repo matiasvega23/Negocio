@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Angie's Secret · versión 4.4 · 28 de octubre de 2026 -->
+<!-- Angie's Secret · versión 4.5 · 29 de octubre de 2026 -->
 <html lang="es-CL">
 <head>
 <meta charset="utf-8">
@@ -74,6 +74,7 @@
       <a href="#regalo">Regalos</a>
       <a href="#como-pedir">Cómo pedir</a>
       <a href="#nosotros">Nosotros</a>
+      <a href="#preguntas">Ayuda</a>
       <a href="#visitanos">Visítanos</a>
     </nav>
     <a class="boton boton-wsp boton-chico" data-wsp="Hola Angie's Secret 👋 Quería hacer una consulta." href="https://wa.me/56995709114" target="_blank" rel="noopener">
@@ -133,9 +134,9 @@
     <div class="envoltura">
       <ul>
         <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regla"/></svg></span><div><strong>Tallas de la S a la XXL</strong><span>Pijamas de mujer hasta la talla 60.</span><button type="button" class="enlace-dato" data-guia-tallas>¿Cuál es mi talla?</button></div></li>
-        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-camion"/></svg></span><div><strong>Envíos a todo Chile</strong><span>Coordinamos el envío por WhatsApp.</span></div></li>
+        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-camion"/></svg></span><div><strong>Envíos a todo Chile</strong><span>Con costo adicional según la comuna o región. Te lo confirmamos por WhatsApp antes de pagar.</span></div></li>
         <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-caja"/></svg></span><div><strong>Lo traemos a pedido</strong><span>Si no lo tenemos, lo buscamos para ti.</span></div></li>
-        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg></span><div><strong>Envolvemos tus regalos</strong><span>Sin costo hasta 3 prendas, si haces tu pedido desde esta página. Para cumpleaños, Navidad y fechas especiales.</span><a class="enlace-dato" href="#regalo">Arma tu regalo</a></div></li>
+        <li><span class="icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg></span><div><strong>Envolvemos tus regalos</strong><span data-envoltorio="dato">Sin costo hasta 3 prendas por pedido, solo si pides desde esta página y hasta el 24 de diciembre.</span><a class="enlace-dato" href="#regalo">Arma tu regalo</a></div></li>
       </ul>
     </div>
   </section>
@@ -182,7 +183,7 @@
         <svg class="regalo-icono" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-regalo"/></svg>
         <div>
           <h2 class="titulo" id="titulo-regalo">Arma tu regalo</h2>
-          <p class="intro">Elige hasta 3 prendas y te las entregamos envueltas para regalo, sin costo, siempre que hagas el pedido desde esta página. Por WhatsApp te ayudamos con las tallas y los colores.</p>
+          <p class="intro">Elige las prendas que quieras y te las entregamos envueltas para regalo. <span data-envoltorio="regalo">Hasta el 24 de diciembre, el envoltorio es sin costo hasta 3 prendas por pedido, solo si haces el pedido desde esta página; desde la cuarta prenda, te lo cotizamos.</span> Por WhatsApp te ayudamos con las tallas y los colores.</p>
         </div>
       </div>
       <span class="control-titulo" id="lbl-regalo-para">¿Para quién es?</span>
@@ -209,6 +210,7 @@
       <div>
         <h2 class="titulo" id="titulo-encargo">¿Buscas algo que no ves aquí?</h2>
         <p>En la tienda hay mucho más de lo que cabe en esta página. Y si no lo tenemos, lo traemos a pedido: cuéntanos qué buscas, la talla y el color.</p>
+        <p class="por-mayor" id="por-mayor">¿Compras para tu negocio, un evento o un grupo? También vendemos por mayor. <a href="https://wa.me/56995709114" data-wsp="Hola Angie's Secret 👋 Quiero consultar por venta por mayor. Prendas, tallas y cantidades: " data-mayor target="_blank" rel="noopener">Consultar precio por mayor</a></p>
       </div>
       <div class="acciones">
         <a class="boton boton-wsp" id="encargo-wsp" data-wsp="Hola Angie's Secret 👋 Estoy buscando: " href="https://wa.me/56995709114" target="_blank" rel="noopener">
@@ -225,7 +227,7 @@
       <ol>
         <li><div><strong>Elige</strong><span>Toca un producto, elige talla y color, y agrégalo a tu pedido.</span></div></li>
         <li><div><strong>Envíalo por WhatsApp</strong><span>Tu pedido se escribe solo. Revisa y toca enviar.</span></div></li>
-        <li><div><strong>Te confirmamos</strong><span>Te respondemos con disponibilidad y precio. Retiras en la tienda o te lo enviamos.</span></div></li>
+        <li><div><strong>Te confirmamos</strong><span>Te respondemos con disponibilidad y precio. Retiras en la tienda sin costo o te lo enviamos, con un costo de envío según tu comuna o región.</span></div></li>
       </ol>
     </div>
   </section>
@@ -246,6 +248,7 @@
         <form class="form-registro" id="form-registro" name="registro" method="POST" action="/registro-listo.html" data-netlify="true" netlify-honeypot="campo-trampa">
           <input type="hidden" name="form-name" value="registro">
           <input type="hidden" name="version_bases" value="v2 noviembre 2026">
+          <input type="hidden" name="codigo" value="">
           <p class="oculto"><label>No completes este campo <input name="campo-trampa" tabindex="-1" autocomplete="off"></label></p>
           <div class="registro-fila">
             <div class="campo"><label for="reg-nombre">Nombre</label><input id="reg-nombre" name="nombre" required maxlength="60" autocomplete="given-name"></div>
@@ -261,6 +264,7 @@
         </form>
         <div class="registro-listo" id="registro-listo" role="status" hidden>
           <p class="registro-listo-titulo" id="registro-listo-titulo">¡Listo! Tu descuento de bienvenida quedó registrado.</p>
+          <p class="registro-codigo" id="registro-codigo" hidden></p>
           <p id="registro-listo-detalle">Tienes 1 mes para usarlo: 10% en compras desde $15.000 y 15% desde $50.000, en prendas. Cuando hagas tu primer pedido por WhatsApp desde el número que registraste, el mensaje que se arma en esta página pedirá tu descuento. Si nos escribes directo, solo recuérdanos que te registraste.</p>
           <a class="boton boton-principal" href="#catalogo">Ver el catálogo</a>
         </div>
@@ -292,6 +296,22 @@
     </div>
   </section>
 
+  <section class="preguntas" id="preguntas" aria-labelledby="titulo-preguntas">
+    <div class="envoltura">
+      <h2 class="titulo" id="titulo-preguntas">Preguntas frecuentes</h2>
+      <p class="intro">Lo que más nos preguntan sobre pedidos, envíos, tallas, cambios y regalos. ¿No está tu duda? <button type="button" class="boton-texto en-linea" data-abrir-ayudante>Pregúntale al ayudante</button> o escríbenos.</p>
+      <div class="preguntas-filtros" role="group" aria-label="Temas" id="preguntas-filtros"></div>
+      <div id="preguntas-lista"><p class="letra-chica">Cargando las preguntas…</p></div>
+      <div class="preguntas-contacto">
+        <p><strong>¿Necesitas hablar con una persona?</strong> Para consultas, problemas con un pedido o con la página:</p>
+        <div class="acciones">
+          <a class="boton boton-wsp" data-wspc="Hola 👋 Tengo una consulta sobre Angie's Secret: " href="https://wa.me/56949376311" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>WhatsApp +56 9 4937 6311</a>
+          <a class="boton boton-borde" href="tel:+56949376311"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fono"/></svg>Llamar al +56 9 4937 6311</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="visita" id="visitanos" aria-labelledby="titulo-visita">
     <div class="envoltura">
       <div>
@@ -304,7 +324,7 @@
           <a class="boton boton-wsp" data-wsp="Hola Angie's Secret 👋 Quería hacer una consulta." href="https://wa.me/56995709114" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>WhatsApp</a>
           <a class="boton boton-borde" href="mailto:angiessecret2012@gmail.com"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-correo"/></svg>angiessecret2012@gmail.com</a>
           <a class="boton boton-borde" href="https://www.instagram.com/angie.secret_/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-insta"/></svg>@angie.secret_</a>
-          <a class="boton boton-borde" href="https://www.facebook.com/AngiesSecret/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-face"/></svg>Facebook</a>
+          <a class="boton boton-borde" href="https://www.facebook.com/AngiesSecret/" target="_blank" rel="noopener" aria-label="Angie's Secret en Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-face"/></svg>Angie's Secret</a>
         </div>
       </div>
       <div class="horario">
@@ -345,7 +365,10 @@
       <span class="marca"><span class="oculto">Angie's Secret</span><span class="logo" aria-hidden="true"><span class="parte rosa">Angie<svg class="apos" viewBox="0 0 30 44"><use href="#i-etiqueta"/></svg>s</span> <span class="parte">Secret</span></span></span>
       <p>Moda que te hace sentir bien.</p>
     </div>
-    <p>© <span id="anio">2026</span> Angie's Secret, Renca, Chile. <a href="https://www.instagram.com/angie.secret_/" target="_blank" rel="noopener">Instagram</a> y <a href="https://www.facebook.com/AngiesSecret/" target="_blank" rel="noopener">Facebook</a>. Correo: <a href="mailto:angiessecret2012@gmail.com">angiessecret2012@gmail.com</a>. <a href="privacidad.html">Privacidad y bases del descuento</a></p>
+    <div class="pie-texto">
+      <p>© <span id="anio">2026</span> Angie's Secret, Renca, Chile. Instagram <a href="https://www.instagram.com/angie.secret_/" target="_blank" rel="noopener">@angie.secret_</a> y Facebook <a href="https://www.facebook.com/AngiesSecret/" target="_blank" rel="noopener">Angie's Secret</a>. Correo: <a href="mailto:angiessecret2012@gmail.com">angiessecret2012@gmail.com</a>.</p>
+      <p class="pie-enlaces"><a href="#preguntas">Preguntas frecuentes</a> · <a href="terminos.html">Términos y condiciones</a> · <a href="privacidad.html">Privacidad y bases del descuento</a> · <a href="#por-mayor">Ventas por mayor</a></p>
+    </div>
   </div>
 </footer>
 
@@ -355,6 +378,26 @@
 </div>
 
 <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+
+<button type="button" class="ayudante-boton" id="ayudante-boton" aria-controls="ayudante" aria-expanded="false" data-abrir-ayudante>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chat"/></svg><span>¿Te ayudo?</span>
+</button>
+<section class="ayudante" id="ayudante" role="dialog" aria-modal="false" aria-labelledby="ayudante-titulo" hidden>
+  <header class="ayudante-cabeza">
+    <div>
+      <h2 id="ayudante-titulo">Ayudante de Angie's Secret</h2>
+      <p>Respuestas automáticas. Si no puedo resolverlo, te paso con una persona.</p>
+    </div>
+    <button type="button" class="cerrar" id="ayudante-cerrar" aria-label="Cerrar el ayudante"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </header>
+  <div class="ayudante-mensajes" id="ayudante-mensajes" aria-live="polite"></div>
+  <form class="ayudante-escribir" id="ayudante-form" autocomplete="off">
+    <label class="oculto" for="ayudante-texto">Escribe tu pregunta</label>
+    <input id="ayudante-texto" maxlength="200" placeholder="Escribe tu pregunta. Ej: ¿tienen fajas talla XL?" enterkeyhint="send">
+    <button type="submit" class="boton boton-principal boton-chico" aria-label="Enviar pregunta"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-enviar"/></svg></button>
+  </form>
+  <p class="ayudante-nota">No escribas datos personales aquí: el ayudante no los necesita ni guarda lo que escribes.</p>
+</section>
 
 <dialog id="ventana-producto" aria-labelledby="ficha-nombre">
   <button type="button" class="cerrar" data-cerrar aria-label="Cerrar"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
@@ -407,6 +450,8 @@
     <symbol id="i-etiqueta" viewBox="0 0 30 44"><path d="M15 17C10 10 19 6 14 0" fill="none" style="stroke: var(--hilo, #8C6A3F)" stroke-width="1.8" stroke-linecap="round"/><path d="M9 11h12l6 6v25H3V17Z" style="fill: var(--etiqueta, #1C2754)"/><circle cx="15" cy="18" r="3.2" style="fill: var(--hueco, #fff); stroke: var(--argolla, #E7B84A)" stroke-width="1.4"/></symbol>
     <symbol id="i-corona" viewBox="0 0 60 42"><path d="M5 33 9 11l11 12L30 5l10 18 11-12 4 22Z" fill="#E7B84A"/><rect x="5" y="35" width="50" height="5" rx="2" fill="#E7B84A"/><circle cx="9" cy="10" r="3.2" fill="#E7B84A"/><circle cx="30" cy="4.5" r="3.2" fill="#E7B84A"/><circle cx="51" cy="10" r="3.2" fill="#E7B84A"/></symbol>
     <symbol id="i-face" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M15.6 8.1h-1.7c-1.4 0-2.1.8-2.1 2.1v1.6h-1.6v2.4h1.6v5.4h2.5v-5.4h1.8l.3-2.4h-2.1v-1.3c0-.5.2-.8.8-.8h1.3Z" fill="currentColor"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5.5h16v10H9l-5 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="8.5" cy="10.5" r="1.2" fill="currentColor"/><circle cx="12" cy="10.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="10.5" r="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-enviar" viewBox="0 0 24 24"><path d="M3.5 11.5 20.5 4l-6 16.5-3-7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
     <symbol id="i-mas" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
     <symbol id="i-menos" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
@@ -419,6 +464,8 @@
 
 <script src="js/datos.js"></script>
 <script src="js/app.js"></script>
+<script src="js/ayudante.js"></script>
+<script src="js/medicion.js"></script>
 <script src="js/efectos.js"></script>
 </body>
 </html>

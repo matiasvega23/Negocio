@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel de la tienda | Angie's Secret</title>
+<meta name="theme-color" content="#1C2754">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231C2754'/%3E%3Cpath d='M13 45 17 21l9 10 6-14 6 14 9-10 4 24Z' fill='%23E7B84A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/estilos.css">
+<style>
+.panel { padding: 28px 0 80px; }
+.panel h1 { margin: 0; font: 700 clamp(2rem, 6vw, 2.8rem)/1.05 var(--f-tit); color: var(--noche); }
+.panel h2 { margin: 34px 0 10px; font: 700 1.6rem/1.1 var(--f-tit); color: var(--noche); }
+.panel .controles-panel { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 18px 0; }
+.panel .controles-panel .campo { margin: 0; }
+.panel select, .panel input { min-height: 48px; padding: .4em .7em; border: 2px solid var(--linea); border-radius: 10px; font: 1rem var(--f-txt); background: #fff; }
+.tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tarjeta { padding: 14px; background: #fff; border: 1px solid var(--linea); border-radius: 14px; }
+.tarjeta b { display: block; font: 700 2rem/1 var(--f-tit); color: var(--noche); }
+.tarjeta span { font-size: .9375rem; color: var(--suave); }
+.tablas { display: grid; gap: 16px; }
+@media (min-width: 820px) { .tablas { grid-template-columns: 1fr 1fr; } }
+.tabla { background: #fff; border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; }
+.tabla h3 { margin: 0 0 6px; font-size: 1.05rem; color: var(--noche); }
+.tabla table { width: 100%; border-collapse: collapse; font-size: .9375rem; }
+.tabla td { padding: 5px 0; border-bottom: 1px solid var(--rubor); }
+.tabla td:last-child { text-align: right; font-weight: 700; }
+.tabla .barra { display: block; height: 6px; background: var(--frambuesa-clara); border-radius: 3px; margin-top: 3px; }
+.mensaje-panel { padding: 14px 16px; border-radius: 12px; background: var(--rubor); }
+.alerta-ok { color: var(--abierto); font-weight: 700; } .alerta-mal { color: var(--cerrado); font-weight: 700; }
+</style>
+</head>
+<body>
+<main class="panel">
+  <div class="envoltura">
+    <a class="marca" href="/"><span class="logo"><span class="parte rosa">Angie's</span> <span class="parte">Secret</span></span></a>
+    <h1>Panel de la tienda</h1>
+    <p class="letra-chica">Cómo se usa la página, sin datos personales. Solo para la familia: no compartas la clave.</p>
+    <form class="controles-panel" id="form-panel">
+      <div class="campo"><label for="clave">Clave del panel</label><input id="clave" type="password" autocomplete="current-password" required></div>
+      <div class="campo"><label for="dias">Período</label><select id="dias"><option value="1">Hoy</option><option value="7" selected>Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="60">Últimos 60 días</option></select></div>
+      <div class="campo"><label for="amb">Sitio</label><select id="amb"><option value="prod">Sitio real</option><option value="prueba">Dirección de prueba</option></select></div>
+      <button class="boton boton-principal" type="submit">Ver datos</button>
+    </form>
+    <div id="resultado"><p class="mensaje-panel">Escribe la clave y toca "Ver datos".</p></div>
+    <h2>Seguridad del sitio</h2>
+    <div id="seguridad"><p class="mensaje-panel">Cargando…</p></div>
+  </div>
+</main>
+<script src="js/panel.js"></script>
+</body>
+</html>

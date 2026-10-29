@@ -1,5 +1,12 @@
 # Configuración de Netlify para Angie's Secret.
-# El sitio es estático: no hay que compilar nada, solo publicar la carpeta "sitio".
+# La página es estática (carpeta "sitio"): no hay que compilar nada.
+# Las funciones del servidor (carpeta netlify/functions) dan el código del descuento de bienvenida,
+# la medición anónima de uso, el panel privado y la vigilancia de seguridad. Netlify instala solo
+# lo que dice package.json (la librería de Netlify Blobs) antes de publicar.
 [build]
   publish = "sitio"
   command = ""
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

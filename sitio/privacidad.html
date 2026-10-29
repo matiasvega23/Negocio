@@ -23,7 +23,9 @@
 .legal ol, .legal ul { padding-left: 1.3em; }
 .legal li { margin-bottom: 6px; }
 .legal .actualizado { color: var(--suave); margin: 0; }
-.legal .acciones { margin-top: 28px; }
+.legal .acciones { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px; }
+.legal .medicion { margin: 8px 0 0; padding: 14px 16px; border: 2px solid var(--noche); border-radius: 12px; background: #fff; }
+.legal .medicion p { margin: 0 0 10px; }
 </style>
 </head>
 <body>
@@ -31,7 +33,7 @@
   <div class="envoltura">
     <a class="marca" href="/"><span class="oculto">Angie's Secret, volver al inicio</span><span class="logo" aria-hidden="true"><span class="parte rosa">Angie<svg class="apos" viewBox="0 0 30 44"><use href="#i-etiqueta"/></svg>s</span> <span class="parte">Secret</span></span></a>
     <h1>Privacidad y bases del descuento de bienvenida</h1>
-    <p class="actualizado">Versión 2, noviembre de 2026: agrega el 15% en compras desde $50.000.</p>
+    <p class="actualizado">Versión 3, noviembre de 2026: agrega el código de bienvenida, la medición anónima de uso de la página, la seguridad del sitio y el ayudante virtual. Ver también los <a href="terminos.html">términos y condiciones</a>.</p>
 
     <h2 id="privacidad">Aviso de privacidad</h2>
     <h3>Quién es responsable de tus datos</h3>
@@ -42,6 +44,7 @@
       <li>Nombre, apellido y teléfono con WhatsApp: son necesarios para registrarte y aplicar tu descuento.</li>
       <li>Correo electrónico: es opcional y solo lo usamos si aceptas recibir promociones.</li>
       <li>Al registrarte, el sistema del sitio guarda además la fecha, la hora y la dirección IP de tu conexión. Solo las usamos para detectar registros falsos o repetidos.</li>
+      <li>Al registrarte recibes un código de bienvenida (por ejemplo AS-7K3P-Q9XM), que queda junto a tu registro. En el servidor del sitio guardamos solo ese código, la fecha y si ya se usó, sin tu nombre ni tu teléfono: sirve para que el pedido pida el descuento solo cuando de verdad te registraste.</li>
     </ul>
 
     <h3>Para qué los usamos</h3>
@@ -52,13 +55,29 @@
     <p>No vendemos ni compartimos tus datos con otras empresas para que te ofrezcan sus productos.</p>
 
     <h3>Dónde se guardan</h3>
-    <p>En Netlify, la empresa que aloja este sitio (sus servidores están fuera de Chile), y en un registro interno de la tienda al que solo accede la familia que la administra.</p>
+    <p>En Netlify, la empresa que aloja este sitio (sus servidores están fuera de Chile), y en un registro interno de la tienda al que solo accede la familia que la administra. Nunca publicamos ni entregamos a otras personas los datos de quienes se registran.</p>
 
     <h3>Por cuánto tiempo</h3>
     <ul>
       <li>Si no aceptaste recibir promociones, borramos tus datos a más tardar seis meses después de terminada la promoción, es decir, el 31 de julio de 2027.</li>
       <li>Si aceptaste, los guardamos mientras quieras recibir promociones. Cuando te des de baja, los borramos.</li>
     </ul>
+
+    <h3 id="medicion">Medición anónima de uso de la página</h3>
+    <p>Para mejorar la página contamos, de forma anónima, cómo se usa: visitas, si llegan desde Google, Instagram, Facebook o WhatsApp, si es celular o computador, qué productos se miran, qué se busca, cuántos pedidos se envían, qué temas se consultan al ayudante y si la página tiene errores.</p>
+    <ul>
+      <li><strong>No</strong> guardamos tu nombre, teléfono, correo, dirección IP ni lo que escribes en el pedido o en el registro. De las búsquedas guardamos solo las palabras, sin números, correos ni enlaces.</li>
+      <li>Para distinguir visitas, tu navegador guarda un número al azar que no te identifica.</li>
+      <li>Lo hacemos por nuestro interés legítimo en que la página funcione bien y muestre lo que buscan las clientas y clientes. Los eventos de cada día se resumen y los sueltos se borran; los resúmenes se guardan como máximo 24 meses.</li>
+      <li>Si tu navegador pide no ser rastreado (Global Privacy Control o "Do Not Track"), no medimos nada. También puedes apagarlo aquí:</li>
+    </ul>
+    <div class="medicion" id="medicion-estado"><p>Para cambiar esta opción se necesita JavaScript activado.</p></div>
+
+    <h3>Seguridad del sitio</h3>
+    <p>El sitio registra intentos de ataque, como robots que buscan puntos débiles o intentos de cargar código de otros sitios, para detectarlos y avisar a la tienda. Esos registros guardan el tipo de intento y la hora, no datos personales. Netlify, como proveedor del sitio, procesa técnicamente la dirección IP de cada visita para poder entregar la página, según su propia política de privacidad.</p>
+
+    <h3>Ayudante virtual</h3>
+    <p>El ayudante de la página no guarda lo que escribes y no necesita tus datos: por eso te pide no escribir teléfonos, correos ni RUT. Solo se cuenta, de forma anónima, qué temas se consultan.</p>
 
     <h3>Tus derechos</h3>
     <p>Puedes pedirnos ver tus datos, corregirlos, borrarlos, oponerte a su uso, llevártelos o que los dejemos de usar por un tiempo. También puedes darte de baja de las promociones cuando quieras: responde "BAJA" a cualquier mensaje nuestro, escríbenos a <a href="mailto:angiessecret2012@gmail.com">angiessecret2012@gmail.com</a> o por WhatsApp al <a href="https://wa.me/56949376311">+56 9 4937 6311</a>. Cada correo de promociones incluirá también cómo darte de baja.</p>
@@ -80,6 +99,7 @@
 
     <div class="acciones">
       <a class="boton boton-principal" href="/#registro">Volver al registro</a>
+      <a class="boton boton-borde" href="terminos.html">Términos y condiciones</a>
       <a class="boton boton-borde" href="/">Ir al inicio</a>
     </div>
   </div>
@@ -89,5 +109,6 @@
     <symbol id="i-etiqueta" viewBox="0 0 30 44"><path d="M15 17C10 10 19 6 14 0" fill="none" style="stroke: var(--hilo, #8C6A3F)" stroke-width="1.8" stroke-linecap="round"/><path d="M9 11h12l6 6v25H3V17Z" style="fill: var(--etiqueta, #1C2754)"/><circle cx="15" cy="18" r="3.2" style="fill: var(--hueco, #fff); stroke: var(--argolla, #E7B84A)" stroke-width="1.4"/></symbol>
   </defs>
 </svg>
+<script src="js/medicion.js"></script>
 </body>
 </html>

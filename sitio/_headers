@@ -5,9 +5,16 @@
 # X-Content-Type-Options: el navegador no "adivina" tipos de archivo.
 # Referrer-Policy: al salir a WhatsApp o Google Maps, solo se informa el dominio, no la página exacta.
 # Permissions-Policy: el sitio no pide cámara, micrófono, ubicación ni pagos.
+# report-uri: si el navegador bloquea algo (por ejemplo, código de otro sitio), avisa al vigía de seguridad (/api/vigia).
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; report-uri /api/vigia
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+
+# Páginas internas: que los buscadores no las muestren.
+/panel.html
+  X-Robots-Tag: noindex, nofollow
+/formularios.html
+  X-Robots-Tag: noindex, nofollow

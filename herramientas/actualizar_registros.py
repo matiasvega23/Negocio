@@ -4,11 +4,13 @@ Uso: python3 actualizar_registros.py "Registros 10% bienvenida - Angie's Secret.
 
 registros.json es una lista de registros leídos del formulario "registro" de Netlify:
 [{"id": "...", "fecha": "AAAA-MM-DD", "nombre": "...", "apellido": "...",
-  "telefono": "+569...", "correo": "...", "acepta_promociones": true}]
+  "telefono": "+569...", "correo": "...", "acepta_promociones": true, "codigo": "AS-XXXX-XXXX"}]
 
 - No toca las columnas amarillas (las completa la tienda).
 - No duplica: usa el "ID del registro" para saber qué ya está.
 - Si un teléfono ya estaba registrado, lo anota en Notas (el 10% vale una sola vez por número).
+- Desde la versión 4.5 cada registro trae su código de bienvenida (columna M, "Código"): es el que aparece
+  en el mensaje de WhatsApp del pedido, y sirve para buscar a la persona en el Excel.
 """
 import json
 import sys
@@ -22,6 +24,12 @@ registros = json.load(open(origen, encoding="utf-8"))
 wb = load_workbook(xlsx)
 ws = wb["Registros"]
 AMARILLO = PatternFill("solid", fgColor="FFF2CC")
+if not ws.cell(row=1, column=13).value:
+    h = ws.cell(row=1, column=13, value="Código")
+    h.font = ws.cell(row=1, column=1).font.copy()
+    h.fill = ws.cell(row=1, column=1).fill.copy()
+    h.alignment = ws.cell(row=1, column=1).alignment.copy()
+    ws.column_dimensions["M"].width = 16
 
 ids, telefonos, ultima = set(), set(), 1
 for r in range(2, ws.max_row + 1):
@@ -54,6 +62,8 @@ for reg in sorted(registros, key=lambda x: (x.get("fecha") or "", x.get("id") or
     for c in range(1, 12):
         ws.cell(row=r, column=c).font = Font(name="Arial")
     ws.cell(row=r, column=12, value=str(reg["id"])).font = Font(name="Arial", color="808080", size=8)
+    if reg.get("codigo"):
+        ws.cell(row=r, column=13, value=str(reg["codigo"]).strip().upper()).font = Font(name="Arial", bold=True)
     tel = (reg.get("telefono") or "").strip()
     if tel in telefonos:
         ws.cell(row=r, column=11, value="Teléfono ya registrado antes: el 10% vale una sola vez por número.")

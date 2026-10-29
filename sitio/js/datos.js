@@ -6,11 +6,18 @@
    DATOS DE LA TIENDA: esta es la parte que se edita para actualizar la web.
    ========================================================================= */
 const TIENDA = {
-  whatsapp: "56995709114",          // sin + ni espacios
+  whatsapp: "56995709114",          // pedidos y ventas (sin + ni espacios)
+  whatsappConsultas: "56949376311", // consultas, problemas con la página o un pedido, datos personales y el ayudante
+  telefonoConsultas: "+56 9 4937 6311",
+  facebookNombre: "Angie's Secret", // nombre de la página de Facebook
   abre: "11:00", cierra: "20:00",   // lunes a sábado
   cierraFeriado: "14:00",
   temporadaForzada: null            // null = automática según el mes. O escribir "verano" / "invierno".
 };
+
+// Envoltorio de regalo sin costo: hasta cuántas prendas por pedido y hasta qué día (incluido).
+// Solo para pedidos hechos desde la página. Después de "gratisHasta", el sitio ofrece el envoltorio "a consultar".
+const ENVOLTORIO = { prendasGratis: 3, gratisHasta: "2026-12-24" };
 
 // Feriados de Chile. "medio" = abre de 11:00 a 14:00. "cerrado" = feriado irrenunciable del comercio.
 const FERIADOS = {
@@ -27,13 +34,14 @@ const FERIADOS = {
 // "enlace" puede ser una sección (#regalo), un producto (?producto=ID) o "wsp:" + mensaje para abrir WhatsApp.
 // Para un período sin día fijo, usar "inicio" y "fin" en vez de "fecha" y "desde" (no muestra cuenta regresiva).
 const FECHAS_COMERCIALES = [
-  { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Pide desde la página y te envolvemos hasta 3 prendas sin costo.", boton: "Arma tu regalo", enlace: "#regalo" },
-  { nombre: "el Día de los Enamorados", fecha: "2027-02-14", desde: 25, texto: "Conjuntos de lencería y hasta 3 prendas envueltas sin costo pidiendo desde la página.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Envolvemos gratis hasta 3 prendas por pedido, solo si pides desde esta página y hasta el 24 de diciembre.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "el Día de los Enamorados", fecha: "2027-02-14", desde: 25, texto: "Conjuntos de lencería para regalar. Arma tu regalo desde la página y te ayudamos a elegir.", boton: "Arma tu regalo", enlace: "#regalo" },
   { nombre: "Vuelta a clases", inicio: "2027-02-15", fin: "2027-03-15", texto: "Vuelta a clases: pantys escolares y calcetas para el colegio.", boton: "Consultar por WhatsApp", enlace: "wsp:Hola Angie's Secret 👋 Busco pantys escolares. ¿Qué colores y tallas tienen?" },
-  { nombre: "el Día de la Madre", fecha: "2027-05-09", desde: 30, texto: "Pijamas, lencería y hasta 3 prendas envueltas sin costo pidiendo desde la página.", boton: "Arma tu regalo", enlace: "#regalo" },
-  { nombre: "el Día del Padre", fecha: "2027-06-20", desde: 30, texto: "Pijamas, polares y hasta 3 prendas envueltas sin costo pidiendo desde la página.", boton: "Arma tu regalo", enlace: "#regalo" },
-  { nombre: "Navidad", fecha: "2027-12-25", desde: 60, texto: "Pide desde la página y te envolvemos hasta 3 prendas sin costo.", boton: "Arma tu regalo", enlace: "#regalo" }
+  { nombre: "el Día de la Madre", fecha: "2027-05-09", desde: 30, texto: "Pijamas y lencería para regalar. Arma tu regalo desde la página y te ayudamos a elegir.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "el Día del Padre", fecha: "2027-06-20", desde: 30, texto: "Pijamas y polares para regalar. Arma tu regalo desde la página y te ayudamos a elegir.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Navidad", fecha: "2027-12-25", desde: 60, texto: "Arma tu regalo desde la página y te ayudamos a elegir.", boton: "Arma tu regalo", enlace: "#regalo" }
 ];
+// Si se decide volver a envolver gratis en otra fecha: cambiar ENVOLTORIO.gratisHasta y el texto de esa fecha.
 
 // Productos que aparecen en "Arma tu regalo" (se filtran por temporada y por para quién es).
 const REGALOS = [
@@ -139,4 +147,85 @@ const PRODUCTOS = [
 
   // Niños
   { id: "ropa-ninos", n: "Ropa para niños", para: ["ninos"], cat: "ninos", t: "verano", d: "Poleras, shorts y conjuntos. Pregunta por las tallas disponibles.", fotos: ["k-ninos"], k: "niño niña infantil" }
+];
+
+// Preguntas frecuentes: se muestran en la sección "Preguntas frecuentes" y el ayudante virtual las usa para responder.
+// Formato de las respuestas: párrafos separados por una línea en blanco; líneas que empiezan con "- " son viñetas;
+// enlaces como [texto](destino). Destinos: #seccion, pagina.html#parte, https://..., tel:+569...,
+// wsp:mensaje (WhatsApp de la tienda), wspc:mensaje (WhatsApp de consultas) y accion:tallas (abre la guía de tallas).
+// {envoltorio} se reemplaza solo por las condiciones vigentes del envoltorio de regalo.
+// "claves" son palabras extra con las que el ayudante reconoce la pregunta.
+const CATEGORIAS_PREGUNTAS = [
+  ["pedidos", "Pedidos y compras"], ["envios", "Envíos y retiro"], ["tallas", "Tallas y cuidado"],
+  ["cambios", "Cambios, devoluciones y garantía"], ["descuento", "Descuento de bienvenida"], ["regalos", "Regalos"],
+  ["mayor", "Ventas por mayor"], ["pagina", "La tienda, la página y tus datos"]
+];
+const PREGUNTAS_FRECUENTES = [
+  { id: "como-pedir", cat: "pedidos", p: "¿Cómo hago un pedido?", claves: "comprar pedir encargar hacer pedido como compro",
+    r: "Elige una prenda en el [catálogo](#catalogo), escoge talla, color y cantidad, y toca \"Agregar a mi pedido\". Cuando termines, abre \"Ver mi pedido\", escribe tu nombre y toca \"Enviar pedido por WhatsApp\": el mensaje se escribe solo.\n\nTe respondemos con la disponibilidad y el precio, y coordinamos el pago y la entrega. No necesitas crear una cuenta." },
+  { id: "pagar", cat: "pedidos", p: "¿Puedo pagar en la página?", claves: "pago pagar tarjeta transferencia debito credito efectivo medios de pago",
+    r: "No. La página no cobra ni pide datos de tarjetas. El pago se coordina por WhatsApp cuando te confirmamos la disponibilidad y el precio, y ahí te indicamos los medios de pago. Si compras en la tienda, pagas allá." },
+  { id: "disponibilidad", cat: "pedidos", p: "¿Cómo sé si una prenda está disponible?", claves: "stock disponible hay quedan agotado unidades existencias tienen",
+    r: "El catálogo muestra lo que vendemos, pero no las unidades en tiempo real, porque la tienda también vende en persona. Al enviar tu pedido te confirmamos por WhatsApp qué tallas y colores hay. Si algo no está, te ofrecemos otra opción o lo traemos a pedido." },
+  { id: "precios", cat: "pedidos", p: "¿Por qué no aparecen los precios?", claves: "precio precios valor cuanto cuesta cuanto vale",
+    r: "Por ahora confirmamos los precios por WhatsApp, junto con la disponibilidad de tu talla y color. Siempre sabrás el precio total, con el envío si corresponde, antes de pagar." },
+  { id: "cantidad", cat: "pedidos", p: "¿Cuántas unidades puedo pedir?", claves: "cantidad unidades cuantas maximo mas de veinte cambiar cantidad aumentar disminuir",
+    r: "En la página puedes pedir hasta 20 unidades de cada prenda y cambiar la cantidad con los botones − y + en \"Tu pedido\". Si necesitas más, revisa las [ventas por mayor](#pregunta-por-mayor)." },
+  { id: "cambiar-pedido", cat: "pedidos", p: "Me equivoqué en mi pedido, ¿puedo cambiarlo o cancelarlo?", claves: "equivoque cambiar cancelar anular corregir error pedido modificar",
+    r: "Sí, antes de pagar. Si todavía no lo envías, cámbialo en \"Tu pedido\". Si ya lo enviaste, escríbenos en la misma conversación de WhatsApp qué quieres cambiar o si lo cancelas.\n\nSi no alcanzaste a enviarlo, en \"Ver mi pedido\" aparece \"Recuperar mi pedido\" durante un día." },
+  { id: "no-esta", cat: "pedidos", p: "Busco algo que no está en la página", claves: "no encuentro no esta buscar encargo traer pedido especial",
+    r: "En la tienda hay mucho más de lo que cabe en el catálogo y, si no lo tenemos, lo buscamos para ti. [Cuéntanos qué buscas](wsp:Hola Angie's Secret 👋 Estoy buscando: ) con la talla y el color." },
+  { id: "whatsapp-no-abre", cat: "pedidos", p: "Toqué \"Enviar pedido\" y no se abrió WhatsApp", claves: "whatsapp no abre no se abre no funciona enviar no puedo enviar",
+    r: "- Revisa que tengas WhatsApp instalado. En computador se abre WhatsApp Web.\n- Si el navegador bloqueó la ventana, permítela e inténtalo de nuevo.\n- En \"Ver mi pedido\" puedes tocar \"Copiar mi pedido\" y pegarlo en un chat con el +56 9 9570 9114.\n\nSi sigue sin funcionar, [escríbenos](wspc:Hola 👋 Tengo un problema para enviar mi pedido desde la página.) o [llámanos](tel:+56949376311)." },
+
+  { id: "envios", cat: "envios", p: "¿Hacen envíos? ¿Cuánto cuestan?", claves: "envio envios despacho despachan regiones domicilio costo envio delivery",
+    r: "Sí, enviamos a todo Chile. El envío tiene un costo adicional que depende de la comuna o región de destino: te lo informamos por WhatsApp, junto con el total, antes de que pagues. Si retiras en la tienda, no pagas envío." },
+  { id: "plazos", cat: "envios", p: "¿Cuánto se demora en llegar?", claves: "demora plazo cuando llega dias tarda",
+    r: "Depende del destino y de la empresa de envío. Al confirmar tu pedido por WhatsApp te informamos el plazo estimado para tu comuna." },
+  { id: "retiro", cat: "envios", p: "¿Puedo retirar en la tienda?", claves: "retirar retiro buscar tienda local pasar",
+    r: "Sí, sin costo, en Domingo Santa María 3831, Renca, de lunes a sábado de 11:00 a 20:00 (feriados de 11:00 a 14:00). Coordina el día por WhatsApp." },
+  { id: "regalo-a-otra-persona", cat: "envios", p: "¿Pueden enviar un regalo a otra persona?", claves: "enviar regalo otra persona otra direccion sorpresa",
+    r: "Sí. Al confirmar el pedido por WhatsApp, indícanos la comuna de destino y para quién es." },
+
+  { id: "mi-talla", cat: "tallas", p: "¿Cómo sé cuál es mi talla?", claves: "talla tallas medida medidas medirme que talla soy",
+    r: "Usa la [guía de tallas](accion:tallas): explica cómo medirte (busto, cintura y cadera) y envías tus medidas por WhatsApp. Te recomendamos la talla según la prenda, porque cada marca y modelo calza distinto." },
+  { id: "tallas-grandes", cat: "tallas", p: "¿Tienen tallas grandes?", claves: "tallas grandes xl xxl xxxl talla grande gordita plus",
+    r: "Sí. La mayoría de las prendas van de la S a la XXL, la camisa de polar para hombre llega a XXXL y los pijamas afranelados de mujer, hasta la talla 60. Pregúntanos por la prenda que te interesa." },
+  { id: "talla-sosten", cat: "tallas", p: "¿Cómo elijo la talla de mi sostén?", claves: "sosten brasier copa contorno talla sosten bajo busto",
+    r: "Mide tu busto en la parte más prominente y también justo debajo del busto, sin apretar la huincha, y envíanos las dos medidas por WhatsApp. Te decimos qué talla y modelo te queda mejor. En la tienda también te asesoramos, con discreción." },
+  { id: "cuidado", cat: "tallas", p: "¿Cómo cuido mi lencería?", claves: "lavar lavado cuidar cuidado secar",
+    r: "Recomendación general: lava a mano, o en lavadora dentro de una bolsa de malla, con agua fría y jabón suave. Abrocha los sostenes antes de lavarlos y sécalos a la sombra, sin secadora. Revisa siempre la etiqueta de cada prenda." },
+
+  { id: "cambios", cat: "cambios", p: "¿Puedo cambiar una prenda?", claves: "cambio cambiar devolver devolucion no me quedo talla equivocada",
+    r: "Si la prenda viene con una falla, tienes la garantía legal de 6 meses: cambio, reparación o devolución del dinero. Para cambios por talla o color, pregúntanos antes de comprar y te contamos las condiciones de esa prenda. Guarda tu boleta y la prenda con sus etiquetas." },
+  { id: "garantia", cat: "cambios", p: "¿Qué pasa si una prenda viene con falla?", claves: "falla fallada defecto rota descosida garantia mala calidad",
+    r: "Tienes garantía legal de 6 meses desde que la recibes: puedes elegir entre el cambio, la reparación o la devolución del dinero (Ley 19.496 sobre Protección de los Derechos de los Consumidores). Escríbenos con una foto de la falla y tu boleta, y lo resolvemos." },
+  { id: "retracto", cat: "cambios", p: "¿Qué es el derecho a retracto?", claves: "retracto arrepentirme arrepentimiento devolver diez dias",
+    r: "Si compras a distancia (por ejemplo, por WhatsApp o desde esta página), tienes 10 días desde que recibes el producto para arrepentirte y devolverlo en buen estado, con sus etiquetas y envases originales.\n\n**Importante:** por higiene, no hay derecho a retracto en ropa interior ni trajes de baño si se abrió o retiró su sello o envase de seguridad.\n\nEn las compras hechas en la tienda no corre el retracto, pero sí la garantía legal. [Ver los términos y condiciones](terminos.html#cambios)." },
+
+  { id: "descuento", cat: "descuento", p: "¿Cómo funciona el descuento de bienvenida?", claves: "descuento bienvenida registro registrarme promocion porcentaje",
+    r: "[Regístrate](#registro) con tu nombre, apellido y teléfono. En tu primera compra por WhatsApp tienes 10% si las prendas suman desde $15.000, o 15% si suman $50.000 o más, sin contar el envío. Vale 1 mes desde que te registras y una vez por persona. [Ver las bases](privacidad.html#bases)." },
+  { id: "codigo", cat: "descuento", p: "¿Qué es mi código de bienvenida?", claves: "codigo clave numero registro as",
+    r: "Al registrarte te damos un código, por ejemplo AS-7K3P-Q9XM. Si haces tu pedido desde la página en el mismo celular o computador, el mensaje lo incluye solo. Si nos escribes directo o desde otro equipo, anótalo en tu mensaje y lo verificamos." },
+  { id: "no-aparece-descuento", cat: "descuento", p: "No me aparece la casilla del descuento", claves: "no aparece descuento casilla no sale descuento",
+    r: "La casilla solo aparece si te registraste en ese mismo celular o computador y es tu primera compra. Si te registraste en otro equipo, o se borraron los datos del navegador, escribe tu código en el comentario del pedido o recuérdanoslo por WhatsApp." },
+
+  { id: "envoltorio", cat: "regalos", p: "¿Envuelven para regalo?", claves: "envolver envoltorio envuelto papel regalo",
+    r: "Sí. {envoltorio}\n\nArma tu regalo en [Arma tu regalo](#regalo) o marca \"Envolver para regalo\" en tu pedido." },
+  { id: "que-regalar", cat: "regalos", p: "No sé qué regalar, ¿me ayudan?", claves: "que regalar idea ideas regalo cumpleanos navidad",
+    r: "En [Arma tu regalo](#regalo) hay ideas para ella, para él y para niños según la temporada. Cuéntanos para quién es y te ayudamos a elegir." },
+
+  { id: "por-mayor", cat: "mayor", p: "¿Venden por mayor?", claves: "mayor mayorista al por mayor cantidad empresa negocio revender grupo evento uniforme",
+    r: "Sí. Si compras para tu negocio, un evento, un grupo o en cantidad, [escríbenos por WhatsApp](wsp:Hola Angie's Secret 👋 Quiero consultar por venta por mayor. Prendas, tallas y cantidades: ) con las prendas, tallas y cantidades, y te enviamos una cotización." },
+
+  { id: "horario", cat: "pagina", p: "¿Dónde están y cuál es el horario?", claves: "horario direccion donde ubicacion abren cierran abierto hora",
+    r: "Domingo Santa María 3831, Renca. Lunes a sábado de 11:00 a 20:00 y feriados de 11:00 a 14:00. Domingos y feriados irrenunciables, cerrado. [Cómo llegar](https://www.google.com/maps/search/?api=1&query=Domingo+Santa+Mar%C3%ADa+3831%2C+Renca%2C+Chile)" },
+  { id: "seguridad", cat: "pagina", p: "¿Es seguro usar esta página?", claves: "seguro estafa fraude falso clave codigo sospechoso hackeo",
+    r: "Sí. La página no cobra, no pide claves ni datos de tarjetas, y el ayudante no guarda lo que escribes.\n\nAngie's Secret nunca te pedirá por mensaje claves, códigos de verificación de WhatsApp ni datos de tarjetas. Si alguien lo hace en nuestro nombre, no respondas y [avísanos](wspc:Hola 👋 Quiero avisar de un mensaje sospechoso que usa el nombre de Angie's Secret.)." },
+  { id: "datos", cat: "pagina", p: "¿Qué hacen con mis datos?", claves: "datos personales privacidad borrar mis datos informacion",
+    r: "Solo pedimos datos si te registras para el descuento: los usamos para aplicarlo y, si lo aceptas, para enviarte promociones. No los vendemos ni los compartimos. La página además mide de forma anónima cómo se usa (sin tu nombre ni tu teléfono), y puedes desactivarlo. [Aviso de privacidad](privacidad.html)." },
+  { id: "ayudante", cat: "pagina", p: "¿Quién responde el ayudante?", claves: "ayudante robot bot persona humano quien responde",
+    r: "Es un ayudante automático con respuestas preparadas por la tienda. No es una persona y puede equivocarse: si no resuelve tu duda, te deriva por [WhatsApp al +56 9 4937 6311](wspc:Hola 👋 Vengo del ayudante de la página y necesito ayuda.) o a una [llamada](tel:+56949376311)." },
+  { id: "pagina-falla", cat: "pagina", p: "La página no funciona bien, ¿qué hago?", claves: "pagina falla lenta no carga error boton fotos no se ven pantalla",
+    r: "- Recarga la página.\n- Revisa tu conexión a internet.\n- Actualiza tu navegador o prueba con otro (Chrome, Safari o Firefox).\n\nSi sigue fallando, [cuéntanos qué pasó](wspc:Hola 👋 La página de Angie's Secret me falla: ) y lo revisamos." }
 ];

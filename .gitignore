@@ -1,3 +1,6 @@
 *.xlsx
 *.csv
 registros*.json
+resenas*.json
+node_modules/
+.netlify/

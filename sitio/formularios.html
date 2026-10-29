@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Formularios internos | Angie's Secret</title>
+</head>
+<body>
+<!-- Formularios que Netlify debe reconocer para que las funciones del servidor puedan enviar avisos por correo.
+     No se muestran en el sitio. "alerta": avisos de seguridad. "resumen": resumen semanal de uso de la página. -->
+<form name="alerta" method="POST" data-netlify="true" hidden>
+  <input name="tipo"><input name="detalle"><input name="ambiente"><input name="cuando"><input name="sitio">
+</form>
+<form name="resumen" method="POST" data-netlify="true" hidden>
+  <input name="semana"><textarea name="resumen"></textarea>
+</form>
+<p>Página interna.</p>
+</body>
+</html>
