@@ -88,7 +88,7 @@
     pago() { decir(respuesta("pagar"), masAyuda); },
     tallas() { decir(respuesta("mi-talla"), [{ t: "Abrir la guía de tallas", a: "tallas" }, { t: "Talla de sostén", a: "faq:talla-sosten" }, { t: "¿Tienen tallas grandes?", a: "faq:tallas-grandes" }, ...masAyuda]); },
     cambios(texto) {
-      if (/talla|chic|grande|quedo|color|gusto/.test(norm(texto || ""))) { decir(respuesta("cambios") + respuesta("retracto"), [{ t: "Consultar un cambio", href: wspUrl("Hola Angie's Secret 👋 Quiero consultar por un cambio de talla o color de una prenda que compré: "), externo: true, wsp: true, canal: "wsp_tienda" }, ...masAyuda]); return; }
+      if (/talla|chic|grande|qued[aoe]|color|gusto|apret|suelt|ancho|angost/.test(norm(texto || ""))) { decir(respuesta("cambios") + respuesta("retracto"), [{ t: "Consultar un cambio", href: wspUrl("Hola Angie's Secret 👋 Quiero consultar por un cambio de talla o color de una prenda que compré: "), externo: true, wsp: true, canal: "wsp_tienda" }, ...masAyuda]); return; }
       decir(respuesta("garantia") + respuesta("retracto"), [{ t: "Cambio por talla o color", a: "faq:cambios" },
         { t: "Tengo una prenda con falla", href: wspConsultas("Hola 👋 Compré en Angie's Secret una prenda con falla y quiero usar la garantía. Les envío una foto y mi boleta."), externo: true, wsp: true, canal: "wsp_coordinacion" }, ...masAyuda]);
     },
