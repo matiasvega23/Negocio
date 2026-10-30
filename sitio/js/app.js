@@ -174,16 +174,19 @@ function buscarInteligente(consulta) {
     entendido.push(r.tipo === "igual" ? r.etiqueta : `«${w}» = ${r.etiqueta}`);
   }
   let lista;
-  if (publico === "ninos") {
-    // Regla de la marca: la ropa para niños se muestra siempre aparte, nunca junto a lencería.
-    lista = PRODUCTOS.filter(p => p.para.includes("ninos"));
+  // Regla de la marca: la ropa para niños se muestra siempre aparte, nunca junto a lencería ni ropa de adultos.
+  const deNinos = PRODUCTOS.filter(p => p.para.includes("ninos"));
+  if (publico === "ninos" && !usadas.length) {
+    lista = deNinos;
   } else if (!usadas.length) {
     lista = publico && !desconocidas.length ? PRODUCTOS.filter(p => p.para.includes(publico)) : [];
   } else if (desconocidas.length && usadas.every(u => u.tipo === "corregida" || u.tipo === "comienzo")) {
     // Hay palabras que no conocemos y el resto son solo parecidos: mejor ofrecer pedirlo que mostrar algo que no es.
-    lista = [];
+    lista = publico === "ninos" ? deNinos : [];
   } else {
-    const pesos = indice.productos.map(({ p, campos }) => ({ p, w: usadas.map(u => {
+    // Para niños se busca solo entre la ropa de niños ("calzones para niña" muestra los calzones de niña).
+    const base = publico === "ninos" ? indice.productos.filter(({ p }) => p.para.includes("ninos")) : indice.productos;
+    const pesos = base.map(({ p, campos }) => ({ p, w: usadas.map(u => {
       let mejor = 0;
       for (const [set, peso] of campos) if (peso > mejor && [...u.terminos].some(t => set.has(t))) mejor = peso;
       // La palabra tal como se escribió ("colaless", "ballerina") pesa un poco más que sus sinónimos.
@@ -199,7 +202,11 @@ function buscarInteligente(consulta) {
     // Se muestran las prendas que más coinciden y las que tienen al menos la mitad de ese puntaje, de mayor a menor.
     const tope = Math.max(0, ...puntajes.map(x => x.total));
     lista = puntajes.filter(x => x.total >= tope * 0.5).sort((a, b) => b.total - a.total).map(x => x.p);
+    if (publico === "ninos" && !lista.length) lista = deNinos;
   }
+  // Regla de la marca: las prendas de adultos y las de niños no se muestran juntas. Gana el grupo de la que más coincide
+  // ("ballerina" muestra las de niña; "calcetas", las de adultos; para niños, escribir "niño" o "niña").
+  if (publico !== "ninos" && lista.length) { const ninosPrimero = lista[0].para.includes("ninos"); lista = lista.filter(p => p.para.includes("ninos") === ninosPrimero); }
   if (publico) entendido.push(publico === "ninos" ? "ropa para niños" : `para ${publico}`);
   // Regla de la marca: si la búsqueda es para niños, no se repite ninguna otra palabra (por ejemplo, de ropa interior).
   if (publico === "ninos") entendido.splice(0, entendido.length, "ropa para niños");
