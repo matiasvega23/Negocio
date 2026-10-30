@@ -283,6 +283,8 @@ legend { font-weight: 700; color: var(--noche); margin-bottom: 8px; padding: 0; 
 .cantidad output { min-width: 40px; text-align: center; font-weight: 700; font-size: 1.2rem; }
 .ficha-acciones { display: grid; gap: 10px; margin-top: 24px; }
 .letra-chica { margin: 12px 0 0; font-size: .9375rem; color: var(--suave); }
+.nota-ficha { margin-top: 8px; }
+.nota-catalogo { max-width: 760px; }
 .compartir { margin-top: 6px; }
 
 /* Ventana del pedido */

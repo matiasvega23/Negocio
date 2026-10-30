@@ -8,6 +8,8 @@ const IMGS = window.__IMGS__ || {};
 const foto = k => IMGS[k] || `img/${k}.webp`;
 // Secciones de ropa interior: llevan el aviso del derecho a retracto por higiene.
 const CATS_INTERIOR = new Set(["sostenes", "calzones", "fajas", "interior-hombre"]);
+// Prendas cuya descripción viene del fabricante y podría leerse como de salud (diabéticos, circulación, cobre, fajas).
+const DESCRIPCION_FABRICANTE = /diabet|circulacion|cobre|faja|modelador/;
 const afiche = id => IMGS["a:" + id] || `fichas/${id}.webp`;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -386,6 +388,8 @@ function abrirProducto(id) {
       <h2 id="ficha-nombre">${esc(p.n)}</h2>
       <p>${esc(p.d)}</p>
       <p class="letra-chica">${esc(textoTallas(p))}${p.precio ? `. Precio: $${p.precio.toLocaleString("es-CL")}` : ""}</p>
+      ${p.modelo ? `<p class="letra-chica nota-ficha">Foto referencial del proveedor: el color, el estampado o el envase pueden variar. Te confirmamos el modelo por WhatsApp antes de comprar.</p>` : ""}
+      ${DESCRIPCION_FABRICANTE.test(norm(p.n + " " + p.d)) ? `<p class="letra-chica nota-ficha">Descripción según su fabricante. No es un producto médico ni reemplaza la indicación de un profesional de la salud.</p>` : ""}
       <form id="form-producto">
         ${tallas ? `<fieldset><legend>Talla</legend><div class="opciones">${[...tallas, "No sé mi talla"].map((t, i) => `<label class="opcion"><input type="radio" name="talla" value="${esc(t)}" ${tallas.length === 1 && i === 0 ? "checked" : ""}><span>${esc(t)}</span></label>`).join("")}</div></fieldset>`
                  : `<div class="campo"><label for="talla-libre">Talla (opcional)</label><input id="talla-libre" name="tallaLibre" placeholder="Ej: M, XL, 46"></div>`}
@@ -401,7 +405,7 @@ function abrirProducto(id) {
           <button type="button" class="boton-texto compartir" id="compartir"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1.1em;height:1.1em;vertical-align:-3px"><use href="#i-compartir"/></svg> Compartir este producto</button>
         </div>
         <p class="letra-chica">Te confirmamos disponibilidad y precio por WhatsApp.</p>
-        ${CATS_INTERIOR.has(p.cat) || p.interior ? `<p class="aviso-legal"><strong>Derecho a retracto:</strong> por higiene, la ropa interior no tiene derecho a retracto si se abrió o retiró su sello o envase de seguridad. <a href="terminos.html#cambios">Más información</a></p>` : ""}
+        ${CATS_INTERIOR.has(p.cat) || p.interior ? `<p class="aviso-legal"><strong>Derecho a retracto:</strong> por higiene, la ropa interior no tiene derecho a retracto si se abrió o retiró su sello o envase de seguridad después de la entrega. <a href="terminos.html#cambios">Más información</a></p>` : ""}
       </form>
     </div>`;
   const f = $("#form-producto");
@@ -604,7 +608,7 @@ function pintarPedido() {
     ${registro ? `<p class="letra-chica registro-quien">Registro de bienvenida en este equipo: <strong>${esc(registro.nombre)} ${esc((registro.apellido || "").charAt(0))}.</strong>${registro.codigo ? `, código ${esc(registro.codigo)}` : ""}${registro.usado ? " (ya lo pediste)" : ""}. <button type="button" class="boton-texto en-linea" data-olvidar-registro>¿No eres tú? Quitar de este equipo</button></p>` : `<p class="letra-chica">¿Primera compra? <a href="#registro" data-ir-registro>Regístrate</a> y recibe hasta un 15% de descuento.</p>`}
     <div class="campo"><label for="nombre">Tu nombre</label><input id="nombre" value="${esc(datosCliente.nombre)}" autocomplete="name" required aria-describedby="error-nombre"><p class="registro-error" id="error-nombre" role="alert" hidden>Escribe tu nombre para que sepamos quién hace el pedido.</p></div>
     <div class="campo"><label for="nota">Comentario (opcional)</label><textarea id="nota" placeholder="Ej: es para regalo">${esc(datosCliente.nota)}</textarea></div>
-    <p class="aviso-legal"><strong>Derecho a retracto:</strong> si compras a distancia, tienes 10 días desde que recibes tu pedido para arrepentirte. Por higiene, no aplica a ropa interior ni trajes de baño si se abrió o retiró su sello o envase de seguridad. La garantía legal por fallas es de 6 meses. <a href="terminos.html#cambios">Ver términos</a></p>
+    <p class="aviso-legal"><strong>Derecho a retracto:</strong> si compras a distancia, tienes 10 días desde que recibes tu pedido para arrepentirte. Por higiene, no aplica a ropa interior ni a otros productos de uso personal o higiene si se abrió o retiró su sello o envase de seguridad después de la entrega. La garantía legal por fallas es de 6 meses. <a href="terminos.html#cambios">Ver términos</a></p>
     <div class="ficha-acciones">
       <a class="boton boton-wsp" id="enviar-pedido" href="${wspUrl(mensajePedido())}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Enviar pedido por WhatsApp</a>
       <button type="button" class="boton-texto" id="copiar-pedido">Copiar mi pedido</button>
