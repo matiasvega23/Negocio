@@ -234,7 +234,7 @@ export default async (req, context) => {
       method: "POST", signal: control.signal,
       headers: { "Content-Type": "application/json", "x-api-key": clave, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: MODELO(), max_tokens: 400, temperature: 0.3,
+        model: MODELO(), max_tokens: 400,
         system: [{ type: "text", text: s.estatico, cache_control: { type: "ephemeral" } }, { type: "text", text: momento(s) }],
         messages: mensajes
       })
