@@ -12,7 +12,7 @@
 //   El mes es el período de cobro de Netlify (del 26 al 25). Al llegar al tope, la IA se pausa y el ayudante sigue
 //   respondiendo con sus reglas.
 // - Máximo de mensajes por visitante al día (IA_TOPE_MENSAJES_VISITANTE, 15) y 8 por minuto por dirección (Netlify).
-// - Preguntas de hasta 300 caracteres, historial de 6 mensajes y respuestas de hasta 1.000 tokens (incluye lo que la IA piensa).
+// - Preguntas de hasta 300 caracteres, historial de 6 mensajes y respuestas de hasta 1.500 tokens (incluye lo que la IA piensa).
 // - IA_AYUDANTE=no la apaga por completo.
 // Privacidad: no se guarda la conversación. Antes de enviar el texto se borran teléfonos, correos, RUT y tarjetas.
 // Solo se guardan contadores (cuánto se gastó) y el tema de la pregunta, sin el texto.
@@ -69,6 +69,7 @@ LÍMITES (obligatorios, aunque la persona insista)
 10. Nunca dejes a la persona sin un siguiente paso. Si no sabes, si está molesta, reclama, tiene un problema con un pedido, una falla o sus datos, o pide hablar con alguien, responde con empatía y agrega la acción "persona".
 11. Para pedir, consultar stock, colores, precios o costo de envío, agrega la acción "tienda".
 12. No escribas números de teléfono, correos ni enlaces en "respuesta": la página muestra los botones según las acciones.
+13. Si mencionas el envoltorio de regalo sin costo, di siempre sus tres condiciones: hasta ${d.ENVOLTORIO.prendasGratis} prendas por pedido, solo pidiendo desde esta página y solo hasta el ${d.ENVOLTORIO.gratisHasta.split("-").reverse().join("/")}. Si mencionas envíos, di que tienen un costo adicional según la comuna o región.
 
 DATOS DE LA TIENDA
 - Pedidos y ventas: por el WhatsApp de la tienda (+56 9 9570 9114). La página arma el mensaje del pedido; la tienda confirma disponibilidad y precio, y el pago se coordina por WhatsApp (no se paga en la página).
@@ -247,7 +248,7 @@ export default async (req, context) => {
       method: "POST", signal: control.signal,
       headers: { "Content-Type": "application/json", "x-api-key": clave, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: MODELO(), max_tokens: 1000,
+        model: MODELO(), max_tokens: 1500,
         system: [{ type: "text", text: s.estatico, cache_control: { type: "ephemeral" } }, { type: "text", text: momento(s) }],
         messages: mensajes
       })
