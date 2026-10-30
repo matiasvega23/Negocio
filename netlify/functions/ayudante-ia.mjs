@@ -12,7 +12,7 @@
 //   El mes es el período de cobro de Netlify (del 26 al 25). Al llegar al tope, la IA se pausa y el ayudante sigue
 //   respondiendo con sus reglas.
 // - Máximo de mensajes por visitante al día (IA_TOPE_MENSAJES_VISITANTE, 15) y 8 por minuto por dirección (Netlify).
-// - Preguntas de hasta 300 caracteres, historial de 6 mensajes y respuestas de hasta 400 tokens.
+// - Preguntas de hasta 300 caracteres, historial de 6 mensajes y respuestas de hasta 1.000 tokens (incluye lo que la IA piensa).
 // - IA_AYUDANTE=no la apaga por completo.
 // Privacidad: no se guarda la conversación. Antes de enviar el texto se borran teléfonos, correos, RUT y tarjetas.
 // Solo se guardan contadores (cuánto se gastó) y el tema de la pregunta, sin el texto.
@@ -247,7 +247,7 @@ export default async (req, context) => {
       method: "POST", signal: control.signal,
       headers: { "Content-Type": "application/json", "x-api-key": clave, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: MODELO(), max_tokens: 400,
+        model: MODELO(), max_tokens: 1000,
         system: [{ type: "text", text: s.estatico, cache_control: { type: "ephemeral" } }, { type: "text", text: momento(s) }],
         messages: mensajes
       })
@@ -273,7 +273,10 @@ export default async (req, context) => {
     (u.cache_read_input_tokens || 0) * PRECIO.cacheLeer + (u.cache_creation_input_tokens || 0) * PRECIO.cacheEscribir) / 1e6;
   const creditos = usd * CREDITOS_POR_USD;
   const texto = cuerpo.content.filter(b => b.type === "text").map(b => b.text).join("");
-  const resultado = revisar(leerRespuesta(texto), s);
+  // Haiku 5.5 piensa antes de responder (esos tokens también cuentan). Si se cortó por largo, no se muestra a medias.
+  const leida = leerRespuesta(texto);
+  if (cuerpo.stop_reason === "max_tokens" && leida.rescatada) Object.assign(leida, { respuesta: "Para eso te ayuda mejor una persona del equipo de Angie's Secret, por WhatsApp o llamada.", acciones: ["persona"] });
+  const resultado = revisar(leida, s);
   visitantes[quien] = (visitantes[quien] || 0) + 1;
   await Promise.all([
     sumar(store, `periodo/${per}`, creditos, resultado.filtro ? { filtradas: 1 } : {}),
