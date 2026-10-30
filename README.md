@@ -77,7 +77,7 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 
 ## Catálogo con fotos de cada modelo (versión 4.8)
 
-- 153 productos nuevos (30 de octubre de 2026) con las 159 fotos que entregó la familia: sostenes y petos, calzones, colaless y pantaletas, fajas, ropa interior de hombre, camisetas, pantys, calzas y pantalones, calcetas y calcetines, pañuelos, pechera y, aparte en Niños, calcetas, ballerinas, artículos escolares, camisetas y ropa interior de niños. Cada uno tiene su nombre con el código del modelo y sus tallas, tal como vienen en la foto, para pedirlo exacto por WhatsApp.
+- 151 productos nuevos (30 de octubre de 2026) con 155 de las fotos que entregó la familia (quedan 197 productos en total): sostenes y petos, calzones, colaless y pantaletas, fajas, ropa interior de hombre, camisetas, pantys, calzas y pantalones, calcetas y calcetines, pañuelos, pechera y, aparte en Niños, calcetas, ballerinas, artículos escolares, camisetas y ropa interior de niños. Cada uno tiene su nombre con el código del modelo y sus tallas, tal como vienen en la foto, para pedirlo exacto por WhatsApp.
 - Las fotos están en `sitio/img/c-*.webp` (720 x 900, unos 26 KB cada una): se taparon los precios, se quitaron textos de otra marca y fotos con modelos, y se ven completas en la ficha (`modelo: true` en `js/datos.js`).
 - El catálogo tiene secciones nuevas (sostenes, calzones, fajas, ropa interior de hombre, camisetas, calcetas) y un índice arriba para saltar a cada una. El aviso del derecho a retracto sale en las secciones de ropa interior.
 - El ayudante con IA conoce estos modelos resumidos por tipo y sin códigos (para no alargar sus instrucciones ni gastar de más); sus botones abren la búsqueda de ese tipo en el catálogo, o el modelo si lo nombra exacto.
@@ -85,12 +85,24 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 - Ropa interior de niños: solo en la sección Niños; las etiquetas con fotos de niños se difuminaron y el envase con la foto de una niña se tapó. El buscador nunca mezcla prendas de adultos con las de niños y la IA solo la nombra si la piden, sin ropa interior de adultos en la misma respuesta.
 - No se repitieron 4 fotos que eran la misma imagen ya publicada (dos con precio, una repetida y una captura de la página de otra tienda).
 
+## Revisión legal (versión 4.9)
+
+El detalle de cada ley, el riesgo y la justificación está en el documento del proyecto "cumplimiento-legal-angie-secret". En el sitio:
+
+- Sin fotos con modelos ni fotos de otras tiendas (se retiraron 4 fotos; en la portada se difuminaron las modelos del banner). Caras de niñas en envases, difuminadas. Leyendas "Triunf" tapadas por su parecido con una marca registrada.
+- Sin afirmaciones de salud: se retiraron 2 afiches ("reductor / celulitis" y "circulación / antibacterianas"); las fichas de calcetines para diabéticos, cobre y fajas dicen "Descripción según su fabricante. No es un producto médico". El ayudante con IA no promete efectos ni usa superlativos.
+- Avisos de "foto referencial" en el catálogo y en cada ficha de modelo; las redes sociales correctas en los afiches (@angie.secret_ y Angie's Secret).
+- Retracto según el reglamento de 2024: ropa interior y productos de higiene solo si se abrió el sello después de la entrega (sin "trajes de baño"); en la tienda, si se compra por catálogo sin ver la prenda, también hay retracto.
+- Términos versión 2 (quién vende, mayores de 18, solo Chile, fotos referenciales, retiro de contenido a pedido del dueño, tribunal del domicilio del consumidor) y privacidad versión 5 (lo que guarda el navegador, base legal de cada uso, menores de edad, Ley 21.719).
+- Pendientes que necesitan a la familia: mostrar precios en el catálogo (artículo 30 de la Ley 19.496), publicar el nombre o razón social y el RUT de quien vende, permisos escritos de los proveedores para sus fotos y revisar la marca "Angie's Secret" en INAPI.
+
 ## Reglas de la marca
 
 - Nunca juntar lencería o ropa interior con niños en un mismo texto, imagen o filtro.
-- Solo fotos propias del local o de los productos; sin logos ni personajes de otras marcas.
+- Solo fotos propias del local o de los productos; sin logos ni personajes de otras marcas, sin modelos y sin fotos de otras tiendas.
+- Sin promesas de salud ni superlativos: lo de diabéticos, cobre o fajas se dice como "según su fabricante".
 - Nada que recuerde a Victoria's Secret.
 
 ## Historial de versiones
 
-Cada versión es un cambio con su nombre en el historial ("Versión 2" a "Versión 4.5"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic, sin gastar créditos.
+Cada versión es un cambio con su nombre en el historial ("Versión 2" a "Versión 4.9"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic, sin gastar créditos.
