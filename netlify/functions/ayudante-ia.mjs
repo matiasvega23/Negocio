@@ -94,6 +94,7 @@ ${tienda}
 PREGUNTAS FRECUENTES (usa "faq:id" para mostrar la respuesta oficial): ${faqs}
 
 FORMATO: responde SOLO con un objeto JSON válido: {"respuesta": "texto", "acciones": ["..."], "tema": "..."}
+- respuesta: texto plano, sin markdown (sin asteriscos, sin #, sin viñetas).
 - acciones (0 a 3): "persona", "tienda", "tallas", "registro", "regalo", "pedido", "producto:ID" (ID del catálogo), "catalogo:búsqueda corta", "faq:ID".
 - tema: producto, materiales, tallas, envio, pedido, pagina, cambios, descuento, regalo, mayor, horario, datos, reclamo, fuera_de_tema u otro.`;
   saber = {
@@ -135,7 +136,7 @@ function revisar(datos, s) {
   const tema = /^[a-z_]{2,20}$/.test(datos.tema || "") ? datos.tema : "otro";
   let filtro = null;
   // Sin HTML. Si trae enlaces, correos o teléfonos que no son de la tienda, no se muestra: se deriva a una persona.
-  texto = texto.replace(/<[^>]*>/g, "");
+  texto = texto.replace(/<[^>]*>/g, "").replace(/\*\*([^*\n]+)\*\*/g, "$1").replace(/^#+\s*/gm, "");
   const enlaces = /\b(https?:\/\/|www\.)\S+|\bwa\.me\/\S+|\b[a-z0-9-]+\.(com|cl|net|org|io|app)\b/i.test(texto.replace(/angiessecret2012@gmail\.com/gi, ""));
   const correos = (texto.match(/[\w.+-]+@[\w-]+\.[\w.]+/g) || []).some(m => m.toLowerCase() !== "angiessecret2012@gmail.com");
   const fonos = (texto.match(/(\+?56)?[\s-]?9[\s-]?\d{4}[\s-]?\d{4}\b/g) || []).some(m => !TELEFONOS_TIENDA.test(m));

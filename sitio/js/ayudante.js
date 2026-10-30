@@ -176,7 +176,7 @@
     const r = buscarInteligente(texto);
     const clave = norm(texto).split(/[^a-z]+/).filter(w => w.length > 1 && !PARADAS.has(w)).join(" ");
     if (clave) medir("buscar", { q: clave, res: r.lista.length, lugar: "ayudante" });
-    const tienda = enTienda(texto).slice(0, 6);
+    const tienda = enTienda(texto).slice(0, 8);
     // Si el catálogo solo coincidió por una palabra suelta (color, material) y la tienda tiene la prenda, se muestra la tienda.
     if (tienda.length && (!r.lista.length || !(r.prenda || r.publico))) {
       decir(`<p><strong>En la tienda tenemos ${esc(listaTienda(tienda))}</strong>. No todo está publicado en el catálogo de la página: te confirmamos tallas, colores y precio por WhatsApp.</p>`, [
@@ -272,7 +272,8 @@
       ? "<p>Recibí muchas preguntas seguidas. Espera un minuto y vuelve a escribir, o elige una opción:</p>"
       : "<p>No estoy seguro de haber entendido. Puedo ayudarte con temas de Angie's Secret: productos, tallas, envíos, pedidos, regalos, cambios y la página. Elige una opción o habla con una persona:</p>", [...MENU.slice(0, 6), ...pasarAPersona("una consulta")]);
   }
-  const parrafos = t => String(t).split(/\n{2,}/).map(p => `<p>${esc(p.trim()).replace(/\n/g, "<br>")}</p>`).join("");
+  // La IA responde en texto plano; si igual trae **negritas** de markdown, se muestran como negrita y no como asteriscos.
+  const parrafos = t => String(t).split(/\n{2,}/).map(p => `<p>${esc(p.trim()).replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>").replace(/\*/g, "").replace(/\n/g, "<br>")}</p>`).join("");
   function botonesIA(acciones, pregunta) {
     const b = [];
     for (const a of acciones || []) {
