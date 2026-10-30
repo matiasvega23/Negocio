@@ -10,7 +10,7 @@ import re
 import sys
 from pathlib import Path
 
-ARCHIVOS = ["index.html", "js/app.js", "js/datos.js", "js/efectos.js", "css/estilos.css", "privacidad.html", "terminos.html", "panel.html"]
+ARCHIVOS = ["index.html", "js/app.js", "js/datos.js", "js/efectos.js", "js/ayudante.js", "js/medicion.js", "js/panel.js", "css/estilos.css", "privacidad.html", "terminos.html", "panel.html"]
 raiz = Path(sys.argv[1] if len(sys.argv) > 1 else "sitio")
 
 

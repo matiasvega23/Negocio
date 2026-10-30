@@ -31,7 +31,7 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 | `sitio/css/estilos.css` | Diseño |
 | `sitio/js/datos.js` | **Lo que más se edita:** productos, feriados, fechas comerciales del aviso, ideas de regalo y tabla de tallas |
 | `sitio/js/app.js` | Funcionamiento: catálogo, buscador, fichas, pedido, regalo, guía de tallas, preguntas frecuentes, aviso y decoración |
-| `sitio/js/ayudante.js` | Ayudante virtual: responde con las preguntas frecuentes y el catálogo, y deriva a una persona (+56 9 4937 6311) |
+| `sitio/js/ayudante.js` | Ayudante virtual: responde con las preguntas frecuentes y el catálogo; si no entiende, pregunta a la IA (`/api/ayudante`); deriva a una persona (+56 9 4937 6311) |
 | `sitio/js/medicion.js` | Medición anónima de uso (sin datos personales; se puede apagar desde el aviso de privacidad) |
 | `sitio/terminos.html` | Términos y condiciones (compras, envíos, envoltorio, garantía, retracto, ventas por mayor, uso del sitio) |
 | `sitio/panel.html`, `sitio/js/panel.js` | Panel privado de la familia: cómo se usa la página y estado de seguridad (pide clave) |
@@ -44,7 +44,7 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 | `sitio/img/`, `sitio/fichas/` | Fotos de productos, del local y afiches |
 | `sitio/_headers` | Cabeceras de seguridad |
 | `sitio/404.html` | Página de error |
-| `sitio/privacidad.html` | Aviso de privacidad (versión 3: código, medición anónima, seguridad y ayudante) y bases del descuento de bienvenida (10% o 15%) |
+| `sitio/privacidad.html` | Aviso de privacidad (versión 4: código, medición anónima, seguridad y ayudante con IA) y bases del descuento de bienvenida (10% o 15%) |
 | `sitio/registro-listo.html` | Confirmación del registro cuando el navegador no usa JavaScript |
 | `herramientas/actualizar_registros.py` | Pasa los registros nuevos del formulario al Excel de la tienda (no se publica) |
 | `netlify.toml` | Le dice a Netlify que publique la carpeta `sitio` |
@@ -65,6 +65,14 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 - **Estado** (`/api/estado`, público y sin datos personales): huellas SHA-256 de los archivos publicados, cabeceras de seguridad y contadores del día. La tarea programada "Vigilancia diaria" compara esas huellas con el repositorio y avisa si no coinciden.
 - **Resumen semanal** (`resumen-semanal`, lunes 7:50 en Chile): envía por correo el resumen de uso de la semana con el formulario `resumen` y borra lo que ya cumplió su plazo. Netlify solo ejecuta funciones programadas en el sitio publicado.
 - Costo: las funciones gastan créditos de cómputo (10 por GB-hora) y de solicitudes (2 por cada 10.000). Con el tráfico de la tienda es muy poco, pero conviene mirarlo en Usage.
+
+## Ayudante con inteligencia artificial (versión 4.6)
+
+- El ayudante responde primero con reglas (gratis, en el navegador). Si no entiende la pregunta, o si la persona sigue conversando con la IA, llama a `netlify/functions/ayudante-ia.mjs` (`/api/ayudante`), que usa **Claude Haiku 5.5** con lo que dice `sitio/js/datos.js` (catálogo, preguntas frecuentes, horario, envoltorio, descuento) y reglas estrictas: solo temas de la tienda, sin precios ni stock inventados, sin datos personales, regla de la marca, siempre un siguiente paso.
+- **Quién paga:** por defecto, el AI Gateway de Netlify, en créditos del plan (180 créditos por dólar; Haiku 5.5 cuesta USD 0,10 por millón de tokens de entrada y 0,50 de salida). Si se crea `ANTHROPIC_API_KEY` en Netlify > Environment variables, usa esa clave propia de Anthropic y su saldo.
+- **Topes:** `IA_TOPE_CREDITOS_MES` (25 por defecto, período del 26 al 25), `IA_TOPE_CREDITOS_DIA` (4), `IA_TOPE_MENSAJES_VISITANTE` (15 al día), 8 preguntas por minuto por dirección, 300 caracteres por pregunta, 6 mensajes de historial, 400 tokens por respuesta. `IA_AYUDANTE=no` la apaga. Al llegar al tope se pausa sola, avisa por correo y el ayudante sigue con reglas.
+- **Filtros de salida:** montos en pesos que no sean los tramos del descuento, enlaces, correos o teléfonos ajenos, y niños junto con lencería: se reemplazan por una respuesta segura.
+- `/api/estado` muestra los créditos usados por la IA en el período (`ia`), y la vigilancia diaria avisa si se acerca al tope.
 
 ## Reglas de la marca
 

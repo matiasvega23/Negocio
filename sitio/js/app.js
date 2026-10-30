@@ -197,7 +197,7 @@ function buscarInteligente(consulta) {
   if (publico) entendido.push(publico === "ninos" ? "ropa para niños" : `para ${publico}`);
   // Regla de la marca: si la búsqueda es para niños, no se repite ninguna otra palabra (por ejemplo, de ropa interior).
   if (publico === "ninos") entendido.splice(0, entendido.length, "ropa para niños");
-  const r = { q, lista, ids: new Set(lista.map(p => p.id)), entendido, desconocidas, publico, regalo: /\bregalo/.test(texto) };
+  const r = { q, lista, ids: new Set(lista.map(p => p.id)), entendido, desconocidas, publico, prenda: usadas.some(u => u.prenda), regalo: /\bregalo/.test(texto) };
   cacheBusqueda.set(q, r);
   return r;
 }

@@ -516,3 +516,14 @@ body.ayudante-abierto .ayudante-boton { display: none; }
 .ayudante-escribir input { flex: 1; min-width: 0; min-height: 48px; padding: .5em .8em; border: 2px solid var(--linea); border-radius: 12px; font: 1rem var(--f-txt); }
 .ayudante-escribir .boton { min-width: 52px; padding: 0 12px; }
 .ayudante-nota { margin: 0; padding: 0 12px 10px; background: #fff; font-size: .8125rem; color: var(--suave); }
+
+/* ===================== Versión 4.6: ayudante con inteligencia artificial ===================== */
+.ayudante-msg.escribiendo { display: inline-flex; gap: 4px; padding: 12px 14px; color: var(--suave); }
+.ayudante-msg.escribiendo span[aria-hidden] { font-size: .625rem; animation: ayudante-punto 1.2s infinite ease-in-out; }
+.ayudante-msg.escribiendo span[aria-hidden]:nth-child(3) { animation-delay: .2s; }
+.ayudante-msg.escribiendo span[aria-hidden]:nth-child(4) { animation-delay: .4s; }
+@keyframes ayudante-punto { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ayudante-msg.escribiendo span[aria-hidden] { animation: none; opacity: .6; } }
+.ayudante-msg .nota-ia { margin-top: 6px; font-size: .8125rem; color: var(--suave); }
+.ayudante-nota a { color: inherit; }
+.ayudante-escribir input:disabled { background: var(--rubor); }

@@ -32,6 +32,13 @@ export function unMesDespues(fecha) {
   return `${a2}-${String(m2).padStart(2, "0")}-${String(Math.min(d, ultimo)).padStart(2, "0")}`;
 }
 
+// Período de cobro de Netlify: del día 26 de un mes al 25 del siguiente. Se nombra por el mes en que empieza.
+export function periodoCobro(fecha) {
+  const [a, m, d] = fecha.split("-").map(Number);
+  if (d >= 26) return `${a}-${String(m).padStart(2, "0")}`;
+  return m === 1 ? `${a - 1}-12` : `${a}-${String(m - 1).padStart(2, "0")}`;
+}
+
 export function azar(n = 6) {
   const b = crypto.getRandomValues(new Uint8Array(n));
   return [...b].map(x => x.toString(16).padStart(2, "0")).join("");

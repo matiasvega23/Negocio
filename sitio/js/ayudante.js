@@ -1,13 +1,19 @@
 /* Angie's Secret: ayudante virtual.
-   Responde con reglas y textos preparados por la tienda (las preguntas frecuentes de js/datos.js y el catálogo).
-   No es una inteligencia artificial conectada a internet: no inventa precios ni stock, no guarda lo que se escribe
-   y nunca entrega datos personales de nadie. Si no puede resolver algo, deriva a una persona por WhatsApp o llamada.
+   Primero responde con reglas y textos preparados por la tienda (las preguntas frecuentes de js/datos.js y el
+   catálogo): es instantáneo y gratis. Si no entiende la pregunta, o si la persona ya está conversando con la IA,
+   le pregunta a la inteligencia artificial del servidor (/api/ayudante, Claude Haiku), que tiene reglas estrictas:
+   no inventa precios ni stock y nunca entrega datos personales. Si la IA no está disponible (tope de gasto, error,
+   sin conexión), vuelve a las reglas: nunca deja a nadie sin respuesta. No se guarda lo que se escribe.
+   Si no puede resolver algo, deriva a una persona por WhatsApp o llamada.
    Usa funciones de js/app.js (buscarInteligente, abrirProducto, abrirPedido, wspUrl, wspConsultas, medir, etc.). */
 (() => {
   const panel = $("#ayudante"), mensajes = $("#ayudante-mensajes"), form = $("#ayudante-form"), entrada = $("#ayudante-texto"), boton = $("#ayudante-boton");
   if (!panel) return;
   const TEL = "+" + TIENDA.whatsappConsultas;
   let iniciado = false, ultimoTema = "inicio", esperandoProducto = false;
+  // Conversación con la IA: solo en memoria (se pierde al recargar la página) y solo los últimos 6 mensajes.
+  let modoIA = false, avisoIAMostrado = false;
+  const charla = [];
 
   /* ---------- Palabras que reconoce ---------- */
   const TEMAS = [
@@ -199,8 +205,12 @@
     temas.sort((a, b) => b.n - a.n || PRIORIDAD.indexOf(a.id) - PRIORIDAD.indexOf(b.id));
     const principal = temas[0] ? temas[0].id : null;
     if (WSP_NO_ABRE.test(norm(t)) && NO_FUNCIONA.test(norm(t))) { ultimoTema = "pedido"; medir("ayudante_tema", { tema: "pedido_wsp" }); SUB.wsp(); return; }
+    // Si ya está conversando con la IA, sigue con ella (entiende el contexto), salvo temas que las reglas resuelven mejor.
+    if (modoIA && !esperandoProducto && !["humano", "datos", "seguridad", "descuento"].includes(principal)) { preguntarIA(t); return; }
     const r = buscarInteligente(t);
-    const nombraPrenda = r.entendido.length > 0 && r.lista.length > 0;
+    // Una pregunta larga que no nombra una prenda concreta ("algo para mi abuela que siempre tiene frío") la entiende mejor la IA.
+    const conversacional = palabras.length >= 6 && !r.prenda;
+    const nombraPrenda = r.entendido.length > 0 && r.lista.length > 0 && !conversacional;
     // "¿Cómo sé mi talla de sostén?": es una pregunta de tallas, no de stock.
     if (principal === "tallas" && !temas.some(x => x.id === "disponibilidad")) {
       if (r.entendido.some(e => /sosten/.test(norm(e)))) { medir("ayudante_tema", { tema: "faq_talla-sosten" }); decir(respuesta("talla-sosten"), [{ t: "Abrir la guía de tallas", a: "tallas" }, ...masAyuda]); return; }
@@ -208,7 +218,7 @@
     }
     // ¿Pregunta por un producto? ("¿tienen fajas talla XL?", "pijama polar", "¿venden zapatos?")
     const preguntaProducto = !principal || ["disponibilidad", "precio", "unidades"].includes(principal);
-    if (esperandoProducto || (preguntaProducto && (nombraPrenda || (principal === "disponibilidad" && palabras.length)))) {
+    if (esperandoProducto || (preguntaProducto && (nombraPrenda || (principal === "disponibilidad" && palabras.length && !conversacional)))) {
       esperandoProducto = false;
       medir("ayudante_tema", { tema: "producto" });
       mostrarProductos(t);
@@ -221,9 +231,71 @@
     if (principal) { tema(principal, t); return; }
     const q = mejorPregunta(palabras);
     if (q) { medir("ayudante_tema", { tema: "faq_" + q.id }); decir(`<p><strong>${esc(q.p)}</strong></p>${formatearRespuesta(q.r)}`, masAyuda); return; }
-    if (r.lista.length) { mostrarProductos(t); return; }
+    if (r.lista.length && !conversacional) { mostrarProductos(t); return; }
+    // Las reglas no entendieron: le pregunta a la IA (si no está disponible, vuelve a las reglas).
+    preguntarIA(t);
+  }
+
+  /* ---------- Inteligencia artificial ---------- */
+  function noEntendido(rapido) {
     medir("ayudante_tema", { tema: "no_entendido" });
-    decir("<p>No estoy seguro de haber entendido. Puedo ayudarte con temas de Angie's Secret: productos, tallas, envíos, pedidos, regalos, cambios y la página. Elige una opción o habla con una persona:</p>", [...MENU.slice(0, 6), ...pasarAPersona("una consulta")]);
+    decir(rapido
+      ? "<p>Recibí muchas preguntas seguidas. Espera un minuto y vuelve a escribir, o elige una opción:</p>"
+      : "<p>No estoy seguro de haber entendido. Puedo ayudarte con temas de Angie's Secret: productos, tallas, envíos, pedidos, regalos, cambios y la página. Elige una opción o habla con una persona:</p>", [...MENU.slice(0, 6), ...pasarAPersona("una consulta")]);
+  }
+  const parrafos = t => String(t).split(/\n{2,}/).map(p => `<p>${esc(p.trim()).replace(/\n/g, "<br>")}</p>`).join("");
+  function botonesIA(acciones, pregunta) {
+    const b = [];
+    for (const a of acciones || []) {
+      const [tipo, ...resto] = a.split(":"), valor = resto.join(":");
+      if (tipo === "persona") b.push(...pasarAPersona("una consulta del ayudante", `Hola 👋 Vengo del ayudante de la página de Angie's Secret. Mi consulta es: ${pregunta}`));
+      else if (tipo === "tienda") b.push({ t: "Escribir a la tienda", href: wspUrl(`Hola Angie's Secret 👋 Vengo de la página. Quería consultar: ${pregunta}`), externo: true, wsp: true, canal: "wsp_tienda" });
+      else if (tipo === "tallas") b.push({ t: "Guía de tallas", a: "tallas" });
+      else if (tipo === "registro") b.push({ t: "Registrarme", a: "ir:#registro" });
+      else if (tipo === "regalo") b.push({ t: "Arma tu regalo", a: "ir:#regalo" });
+      else if (tipo === "pedido") b.push({ t: "Ver mi pedido", a: "pedido" });
+      else if (tipo === "producto") { const p = PRODUCTOS.find(x => x.id === valor); if (p) b.push({ t: `Ver ${p.n}`, a: `abrir:${p.id}` }); }
+      else if (tipo === "catalogo" && valor) b.push({ t: `Ver «${valor}» en el catálogo`, a: `catalogo:${valor}` });
+      else if (tipo === "faq") { const q = faq(valor); if (q) b.push({ t: q.p, a: `faq:${q.id}` }); }
+    }
+    b.push({ t: "Otra pregunta", a: "menu" });
+    if (!(acciones || []).includes("persona")) b.push({ t: "Hablar con una persona", a: "tema:humano" });
+    return b;
+  }
+  function visitante() { try { return localStorage.getItem("angie-v") || ""; } catch (e) { return ""; } }
+  async function preguntarIA(texto) {
+    charla.push({ r: "u", t: texto });
+    while (charla.length > 6) charla.shift();
+    const escribiendo = document.createElement("div");
+    escribiendo.className = "ayudante-msg bot escribiendo";
+    escribiendo.innerHTML = '<span class="oculto">Escribiendo</span><span aria-hidden="true">●</span><span aria-hidden="true">●</span><span aria-hidden="true">●</span>';
+    mensajes.appendChild(escribiendo); mensajes.scrollTop = mensajes.scrollHeight;
+    entrada.disabled = true;
+    let d = null;
+    try {
+      const control = new AbortController();
+      const reloj = setTimeout(() => control.abort(), 18000);
+      const r = await fetch("/api/ayudante", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mensajes: charla, v: visitante() }), signal: control.signal });
+      clearTimeout(reloj);
+      d = r.ok ? await r.json() : r.status === 429 ? { ia: false, motivo: "rapido" } : null;
+    } catch (e) { d = null; }
+    escribiendo.remove();
+    entrada.disabled = false; entrada.focus();
+    if (d && d.ia && d.respuesta) {
+      charla.push({ r: "a", t: d.respuesta });
+      modoIA = true; ultimoTema = "ia_" + (d.tema || "otro");
+      medir("ayudante_tema", { tema: "ia_" + (d.tema || "otro") });
+      const aviso = avisoIAMostrado
+        ? '<p class="nota-ia">Respuesta con IA</p>'
+        : '<p class="nota-ia">Respuesta automática con inteligencia artificial: puede equivocarse. Precios, stock y pedidos te los confirma la tienda por WhatsApp.</p>';
+      avisoIAMostrado = true;
+      decir(parrafos(d.respuesta) + aviso, botonesIA(d.acciones, texto));
+      return;
+    }
+    // Sin IA (tope de gasto, error o sin conexión): responden las reglas, nunca el silencio.
+    charla.pop(); modoIA = false;
+    if (d && d.motivo) medir("ayudante_tema", { tema: "ia_no_" + d.motivo });
+    noEntendido(d && d.motivo === "rapido");
   }
 
   /* ---------- Abrir, cerrar y botones ---------- */
@@ -231,7 +303,7 @@
     panel.hidden = false; boton.setAttribute("aria-expanded", "true"); document.body.classList.add("ayudante-abierto");
     if (!iniciado) {
       iniciado = true;
-      decir("<p>Hola 👋 Soy el ayudante de Angie's Secret. Te ayudo con productos, tallas, envíos, tu pedido o la página.</p><p class=\"letra-chica\">Soy automático: si no puedo resolverlo, te paso con una persona.</p>", MENU);
+      decir("<p>Hola 👋 Soy el ayudante de Angie's Secret. Te ayudo con productos, tallas, envíos, tu pedido o la página. Escríbeme como quieras o elige una opción.</p><p class=\"letra-chica\">Soy automático y a veces uso inteligencia artificial. Si no puedo resolverlo, te paso con una persona.</p>", MENU);
       medir("ayudante_abrir");
     }
     setTimeout(() => entrada.focus(), 50);
@@ -247,6 +319,7 @@
     const b = e.target.closest("[data-ay]"); if (!b) return;
     const [accion, ...resto] = b.dataset.ay.split(":"), valor = resto.join(":");
     if (accion !== "abrir" && accion !== "catalogo") yo(b.textContent);
+    if (accion === "menu" || accion === "tema" || accion === "sub") modoIA = false;
     if (accion === "menu") RESPONDER.menu();
     else if (accion === "tema") tema(valor);
     else if (accion === "sub") { medir("ayudante_tema", { tema: "pedido_" + valor }); SUB[valor](); }
