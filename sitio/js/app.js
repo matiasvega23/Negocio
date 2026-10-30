@@ -401,7 +401,7 @@ function abrirProducto(id) {
           <button type="button" class="boton-texto compartir" id="compartir"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1.1em;height:1.1em;vertical-align:-3px"><use href="#i-compartir"/></svg> Compartir este producto</button>
         </div>
         <p class="letra-chica">Te confirmamos disponibilidad y precio por WhatsApp.</p>
-        ${CATS_INTERIOR.has(p.cat) ? `<p class="aviso-legal"><strong>Derecho a retracto:</strong> por higiene, la ropa interior no tiene derecho a retracto si se abrió o retiró su sello o envase de seguridad. <a href="terminos.html#cambios">Más información</a></p>` : ""}
+        ${CATS_INTERIOR.has(p.cat) || p.interior ? `<p class="aviso-legal"><strong>Derecho a retracto:</strong> por higiene, la ropa interior no tiene derecho a retracto si se abrió o retiró su sello o envase de seguridad. <a href="terminos.html#cambios">Más información</a></p>` : ""}
       </form>
     </div>`;
   const f = $("#form-producto");

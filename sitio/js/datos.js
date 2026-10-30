@@ -308,13 +308,13 @@ const PRODUCTOS = [
   { id: "camiseta-panty-nina-piel", n: "Camiseta panty de niña color piel", para: ["ninos"], cat: "ninos", t: "invierno", d: "Camiseta panty color piel.", fotos: ["c-camiseta-panty-nina-piel"], k: "termica", modelo: true },
   { id: "camiseta-panty-nina-blanca", n: "Camiseta panty de niña blanca", para: ["ninos"], cat: "ninos", t: "invierno", d: "Camiseta panty blanca. Marca Stavias.", fotos: ["c-camiseta-panty-nina-blanca"], k: "termica", modelo: true },
   { id: "camiseta-panty-nina-negra", n: "Camiseta panty de niña negra", para: ["ninos"], cat: "ninos", t: "invierno", d: "Camiseta panty negra. Marca Stavias.", fotos: ["c-camiseta-panty-nina-negra"], k: "termica", modelo: true },
-  { id: "peto-nina-8997", n: "Peto de niña 8997", para: ["ninos"], cat: "ninos", t: "todo", d: "Peto de colores, talla única.", tallas: ["Única"], fotos: ["c-peto-nina-8997"], k: "top", modelo: true },
-  { id: "peto-nina-6238", n: "Peto de niña 6238", para: ["ninos"], cat: "ninos", t: "todo", d: "Peto de colores, talla única.", tallas: ["Única"], fotos: ["c-peto-nina-6238"], k: "top", modelo: true },
-  { id: "calzon-nina", n: "Calzón de niña, algodón peruano", para: ["ninos"], cat: "ninos", t: "todo", d: "Algodón peruano, con flores de colores.", fotos: ["c-calzon-nina"], modelo: true },
-  { id: "calzon-nina-talla-surtida", n: "Calzón de niña talla surtida", para: ["ninos"], cat: "ninos", t: "todo", d: "Algodón peruano, con puntos de colores.", tallas: ["4", "6", "8", "10"], fotos: ["c-calzon-nina-talla-surtida"], modelo: true },
-  { id: "boxer-bebe-jack", n: "Bóxer de bebé Jack", para: ["ninos"], cat: "ninos", t: "todo", d: "Con animalitos estampados.", fotos: ["c-boxer-bebe-jack"], k: "calzoncillo guagua", modelo: true },
-  { id: "boxer-nino-jack", n: "Bóxer de niño Jack", para: ["ninos"], cat: "ninos", t: "todo", d: "Bóxer de colores.", fotos: ["c-boxer-nino-jack"], k: "calzoncillo", modelo: true },
-  { id: "boxer-juvenil-jack", n: "Bóxer juvenil Jack", para: ["ninos"], cat: "ninos", t: "todo", d: "Bóxer de colores, tallas juveniles.", fotos: ["c-boxer-juvenil-jack"], k: "calzoncillo", modelo: true },
+  { id: "peto-nina-8997", n: "Peto de niña 8997", para: ["ninos"], cat: "ninos", t: "todo", d: "Peto de colores, talla única.", tallas: ["Única"], fotos: ["c-peto-nina-8997"], k: "top", modelo: true, interior: true },
+  { id: "peto-nina-6238", n: "Peto de niña 6238", para: ["ninos"], cat: "ninos", t: "todo", d: "Peto de colores, talla única.", tallas: ["Única"], fotos: ["c-peto-nina-6238"], k: "top", modelo: true, interior: true },
+  { id: "calzon-nina", n: "Calzón de niña, algodón peruano", para: ["ninos"], cat: "ninos", t: "todo", d: "Algodón peruano, con flores de colores.", fotos: ["c-calzon-nina"], modelo: true, interior: true },
+  { id: "calzon-nina-talla-surtida", n: "Calzón de niña talla surtida", para: ["ninos"], cat: "ninos", t: "todo", d: "Algodón peruano, con puntos de colores.", tallas: ["4", "6", "8", "10"], fotos: ["c-calzon-nina-talla-surtida"], modelo: true, interior: true },
+  { id: "boxer-bebe-jack", n: "Bóxer de bebé Jack", para: ["ninos"], cat: "ninos", t: "todo", d: "Con animalitos estampados.", fotos: ["c-boxer-bebe-jack"], k: "calzoncillo guagua", modelo: true, interior: true },
+  { id: "boxer-nino-jack", n: "Bóxer de niño Jack", para: ["ninos"], cat: "ninos", t: "todo", d: "Bóxer de colores.", fotos: ["c-boxer-nino-jack"], k: "calzoncillo", modelo: true, interior: true },
+  { id: "boxer-juvenil-jack", n: "Bóxer juvenil Jack", para: ["ninos"], cat: "ninos", t: "todo", d: "Bóxer de colores, tallas juveniles.", fotos: ["c-boxer-juvenil-jack"], k: "calzoncillo", modelo: true, interior: true },
   { id: "ropa-ninos", n: "Ropa para niños", para: ["ninos"], cat: "ninos", t: "verano", d: "Poleras, shorts y conjuntos. Pregunta por las tallas disponibles.", fotos: ["k-ninos"], k: "niño niña infantil" }
 ];
 
