@@ -87,14 +87,13 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 
 ## Revisión legal (versión 4.9)
 
-El detalle de cada ley, el riesgo y la justificación está en el documento del proyecto "cumplimiento-legal-angie-secret". En el sitio:
+Lo que se ajustó en el sitio:
 
 - Sin fotos con modelos ni fotos de otras tiendas (se retiraron 4 fotos; en la portada se difuminaron las modelos del banner). Caras de niñas en envases, difuminadas. Leyendas "Triunf" tapadas por su parecido con una marca registrada.
 - Sin afirmaciones de salud: se retiraron 2 afiches ("reductor / celulitis" y "circulación / antibacterianas"); las fichas de calcetines para diabéticos, cobre y fajas dicen "Descripción según su fabricante. No es un producto médico". El ayudante con IA no promete efectos ni usa superlativos.
 - Avisos de "foto referencial" en el catálogo y en cada ficha de modelo; las redes sociales correctas en los afiches (@angie.secret_ y Angie's Secret).
 - Retracto según el reglamento de 2024: ropa interior y productos de higiene solo si se abrió el sello después de la entrega (sin "trajes de baño"); en la tienda, si se compra por catálogo sin ver la prenda, también hay retracto.
 - Términos versión 2 (quién vende, mayores de 18, solo Chile, fotos referenciales, retiro de contenido a pedido del dueño, tribunal del domicilio del consumidor) y privacidad versión 5 (lo que guarda el navegador, base legal de cada uso, menores de edad, Ley 21.719).
-- Pendientes que necesitan a la familia: mostrar precios en el catálogo (artículo 30 de la Ley 19.496), publicar el nombre o razón social y el RUT de quien vende, permisos escritos de los proveedores para sus fotos y revisar la marca "Angie's Secret" en INAPI.
 
 ## Reglas de la marca
 
