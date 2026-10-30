@@ -284,7 +284,7 @@ export default async (req, context) => {
   if (Math.random() < 0.05) {
     try { const viejo = sumarDias(fecha, -2); for await (const p of store.list({ prefix: "visitantes/", paginate: true })) for (const b of p.blobs) if (b.key.slice(11) < viejo) await store.delete(b.key); } catch (e) {}
   }
-  const crudo = amb !== "prod" && leerRespuesta(texto).rescatada ? { crudo: texto.slice(0, 600) } : {};
+  const crudo = amb !== "prod" ? { diag: { fin: cuerpo.stop_reason, uso: u, bloques: cuerpo.content.map(b => b.type), creditos: Math.round(creditos * 1000) / 1000 }, ...(leerRespuesta(texto).rescatada ? { crudo: texto.slice(0, 600) } : {}) } : {};
   return json({ ia: true, respuesta: resultado.texto, acciones: resultado.acciones, tema: resultado.tema, ...crudo });
 };
 
