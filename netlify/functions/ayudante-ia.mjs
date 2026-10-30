@@ -114,7 +114,9 @@ function momento(s) {
   const estado = abierta ? `abierta hasta las ${cierra}` : cierra && hhmm < s.tienda.abre ? `cerrada; hoy abre a las ${s.tienda.abre}` : "cerrada en este momento";
   const proximos = Object.entries(s.feriados).filter(([f]) => f >= fecha).slice(0, 3)
     .map(([f, t]) => `${f.split("-").reverse().join("/")} (${t === "medio" ? "abre de 11:00 a 14:00" : "cerrado"})`).join(", ");
-  return `AHORA: hoy es ${nombres[dia]} ${fecha.split("-").reverse().join("/")}, son las ${hhmm} en Chile. La tienda está ${estado}${feriado ? ` (hoy es feriado)` : ""}. Próximos feriados: ${proximos || "ninguno cargado"}.`;
+  const mes = Number(fecha.slice(5, 7));
+  const temporada = s.tienda.temporadaForzada || (mes >= 4 && mes <= 8 ? "invierno" : mes >= 10 || mes <= 2 ? "verano" : "cambio de temporada");
+  return `AHORA: hoy es ${nombres[dia]} ${fecha.split("-").reverse().join("/")}, son las ${hhmm} en Chile. La tienda está ${estado}${feriado ? ` (hoy es feriado)` : ""}. Próximos feriados: ${proximos || "ninguno cargado"}. Temporada actual de la tienda: ${temporada}. Si recomiendas una prenda de otra temporada, aclara que hay que preguntar si queda.`;
 }
 
 /* ---------- Revisar la respuesta antes de mostrarla ---------- */
@@ -165,10 +167,21 @@ function revisar(datos, s) {
   return { texto, acciones: unicas, tema, filtro };
 }
 
+// La IA debe responder en JSON. Si el JSON viene con errores (comillas o saltos de línea sin escapar), se rescatan
+// los campos uno por uno; si no hay JSON, se usa el texto tal cual y se ofrece una persona.
 function leerRespuesta(texto) {
   const i = texto.indexOf("{"), j = texto.lastIndexOf("}");
-  if (i >= 0 && j > i) { try { return JSON.parse(texto.slice(i, j + 1)); } catch (e) {} }
-  return { respuesta: texto.replace(/[{}"]/g, "").trim(), acciones: ["persona"], tema: "otro" };
+  if (i >= 0 && j > i) {
+    const bloque = texto.slice(i, j + 1);
+    try { return JSON.parse(bloque); } catch (e) {}
+    const m = bloque.match(/"respuesta"\s*:\s*"([\s\S]*?)"\s*,\s*"(acciones|tema)"/) || bloque.match(/"respuesta"\s*:\s*"([\s\S]*?)"\s*\}?\s*$/);
+    if (m) {
+      const acc = (bloque.match(/"acciones"\s*:\s*\[([^\]]*)\]/) || [, ""])[1].match(/"[^"]*"/g) || [];
+      const tema = (bloque.match(/"tema"\s*:\s*"([a-z_]+)"/) || [, "otro"])[1];
+      return { respuesta: m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"'), acciones: acc.map(x => x.slice(1, -1)), tema, rescatada: true };
+    }
+  }
+  return { respuesta: texto.replace(/```(json)?/g, "").replace(/[{}]/g, "").replace(/^\s*"?respuesta"?\s*:\s*/i, "").trim(), acciones: ["persona"], tema: "otro", rescatada: true };
 }
 
 async function sumar(store, clave, creditos, extra = {}) {
@@ -271,7 +284,8 @@ export default async (req, context) => {
   if (Math.random() < 0.05) {
     try { const viejo = sumarDias(fecha, -2); for await (const p of store.list({ prefix: "visitantes/", paginate: true })) for (const b of p.blobs) if (b.key.slice(11) < viejo) await store.delete(b.key); } catch (e) {}
   }
-  return json({ ia: true, respuesta: resultado.texto, acciones: resultado.acciones, tema: resultado.tema });
+  const crudo = amb !== "prod" && leerRespuesta(texto).rescatada ? { crudo: texto.slice(0, 600) } : {};
+  return json({ ia: true, respuesta: resultado.texto, acciones: resultado.acciones, tema: resultado.tema, ...crudo });
 };
 
 export const config = {
