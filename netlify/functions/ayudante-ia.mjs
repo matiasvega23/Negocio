@@ -52,10 +52,14 @@ async function conocimiento(origen) {
   const d = vm.runInNewContext(`${codigo}\n;({ TIENDA, ENVOLTORIO, FERIADOS, PRODUCTOS, PREGUNTAS_FRECUENTES, PRODUCTOS_TIENDA: typeof PRODUCTOS_TIENDA === "undefined" ? [] : PRODUCTOS_TIENDA, CATEGORIAS: typeof CATEGORIAS === "undefined" ? [] : CATEGORIAS })`, {}, { timeout: 500 });
   const temporada = { todo: "todo el año", verano: "verano", invierno: "invierno" };
   const tallas = p => !p.tallas ? "preguntar" : p.tallas.join(",") === "S,M,L,XL,XXL" ? "S-XXL" : p.tallas.join(",");
-  // Los modelos con foto del proveedor (modelo: true) son muchos: van solo con su nombre, agrupados por sección,
-  // para no alargar las instrucciones (cada respuesta de la IA las lee y eso gasta créditos).
-  const modelos = d.CATEGORIAS.map(([k, nombre]) => [nombre, d.PRODUCTOS.filter(p => p.modelo && p.cat === k).map(p => p.n)]).filter(([, ns]) => ns.length)
-    .map(([nombre, ns]) => `- ${nombre}: ${ns.join("; ")}`).join("\n");
+  // Los modelos con foto del proveedor (modelo: true) son muchos: van resumidos por tipo y sin códigos, agrupados
+  // por sección, para no alargar las instrucciones (cada respuesta de la IA las lee y eso gasta créditos).
+  const tipo = n => n.replace(/\s+(?=\S*\d)\S+(\s+[A-Z]{1,2}\b)?/g, "").replace(/\s{2,}/g, " ").trim();
+  const modelos = d.CATEGORIAS.map(([k, nombre]) => {
+    const ps = d.PRODUCTOS.filter(p => p.modelo && p.cat === k); if (!ps.length) return null;
+    const cuenta = {}; for (const p of ps) cuenta[tipo(p.n)] = (cuenta[tipo(p.n)] || 0) + 1;
+    return `- ${nombre} (${ps.length}): ${Object.entries(cuenta).map(([t, c]) => c > 1 ? `${t} (${c})` : t).join("; ")}`;
+  }).filter(Boolean).join("\n");
   const catalogo = d.PRODUCTOS.filter(p => !p.modelo).map(p => `- ${p.id} | ${p.n} | ${(p.para || []).join("/")} | ${temporada[p.t] || p.t} | ${tallas(p)} | ${(p.col || []).join("/") || "preguntar"}${p.d ? ` | ${p.d.slice(0, 70)}` : ""}`).join("\n");
   const tienda = d.PRODUCTOS_TIENDA.map(g => `- ${g.grupo}: ${g.items.map(i => minus(i.n) + (i.soloSiPiden ? " (solo si lo piden)" : i.ninos ? " (niños)" : "")).join("; ")}`).join("\n");
   const faqs = d.PREGUNTAS_FRECUENTES.map(q => `${q.id}: ${q.p}`).join(" | ");
@@ -92,7 +96,7 @@ DATOS
 CATÁLOGO DE LA PÁGINA (id | nombre | para | temporada | tallas | colores | descripción)
 ${catalogo}
 
-MODELOS CON FOTO EN LA PÁGINA (nombre exacto con su código; para mostrar uno usa "catalogo:" con el nombre exacto, por ejemplo "catalogo:Sostén de encaje 8124")
+MODELOS CON FOTO EN LA PÁGINA, POR TIPO (entre paréntesis, cuántos modelos; para mostrarlos usa "catalogo:" con el tipo, por ejemplo "catalogo:sostén con broche adelante")
 ${modelos}
 
 EN LA TIENDA, POR MATERIAL (no todo está en la página; sin precios, tallas ni stock: se consultan por WhatsApp)

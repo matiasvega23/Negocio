@@ -80,7 +80,7 @@ La dirección de prueba es pública pero no se difunde. Le indica a Google que l
 - 137 productos nuevos (30 de octubre de 2026) con las fotos que entregó la familia: sostenes y petos, calzones, colaless y pantaletas, fajas, ropa interior de hombre, camisetas, pantys y calzas, calcetas y calcetines, pañuelos, pechera y, aparte, calcetas, ballerinas y artículos escolares de niños. Cada uno tiene su nombre con el código del modelo y sus tallas, tal como vienen en la foto, para pedirlo exacto por WhatsApp.
 - Las fotos están en `sitio/img/c-*.webp` (720 x 900, unos 26 KB cada una): se taparon los precios, se quitaron textos de otra marca y fotos con modelos, y se ven completas en la ficha (`modelo: true` en `js/datos.js`).
 - El catálogo tiene secciones nuevas (sostenes, calzones, fajas, ropa interior de hombre, camisetas, calcetas) y un índice arriba para saltar a cada una. El aviso del derecho a retracto sale en las secciones de ropa interior.
-- El ayudante con IA conoce estos modelos solo por su nombre (para no alargar sus instrucciones) y, si nombra uno exacto, su botón abre ese modelo.
+- El ayudante con IA conoce estos modelos resumidos por tipo y sin códigos (para no alargar sus instrucciones ni gastar de más); sus botones abren la búsqueda de ese tipo en el catálogo, o el modelo si lo nombra exacto.
 - Para sumar fotos nuevas: `python3 herramientas/preparar_fotos.py <carpeta> sitio/img`, revisar cada foto (sin precios, sin modelos, regla de la marca) y agregar el producto en `js/datos.js`.
 - No se publicaron: ropa interior de niñas y niños (regla de la marca) ni fotos con modelos o de otra tienda.
 
