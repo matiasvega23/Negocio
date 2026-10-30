@@ -133,7 +133,7 @@
     humano(tema) {
       decir(`<p>Te paso con una persona del equipo de Angie's Secret: escribe por WhatsApp o llama al <strong>${esc(TIENDA.telefonoConsultas)}</strong>, de lunes a sábado de 11:00 a 20:00.</p><p class="letra-chica">Para hacer un pedido o consultar stock, el WhatsApp de la tienda es el +56 9 9570 9114.</p>`, pasarAPersona(tema || "una consulta"));
     },
-    datos() { decir(respuesta("datos") + `<p>Para ver, corregir o borrar tus datos, escríbenos.</p>`, [{ t: "Aviso de privacidad", href: "privacidad.html" }, ...pasarAPersona("mis datos personales")]); },
+    datos() { decir(respuesta("datos") + `<p>Para ver, corregir o borrar tus datos, escríbenos.</p>`, [{ t: "Política de privacidad", href: "privacidad.html" }, ...pasarAPersona("mis datos personales")]); },
     seguridad() { decir(respuesta("seguridad"), [{ t: "Avisar de algo sospechoso", href: wspConsultas("Hola 👋 Quiero avisar de algo sospechoso que usa el nombre de Angie's Secret: "), externo: true, wsp: true, canal: "wsp_coordinacion" }, { t: "Otra pregunta", a: "menu" }]); }
   };
   const SUB = {
@@ -304,7 +304,7 @@
   function visitante() { try { return localStorage.getItem("angie-v") || ""; } catch (e) { return ""; } }
   function avisoAgotado() {
     medir("ayudante_tema", { tema: "ia_agotada" });
-    decir(`<p>Ya usaste las respuestas con inteligencia artificial de hoy. Para seguir conversando, escríbenos por WhatsApp o llámanos al <strong>${esc(TIENDA.telefonoConsultas)}</strong> y te ayudamos con gusto.</p><p class="letra-chica">Los botones del ayudante y las preguntas frecuentes no tienen límite.</p>`, [...pasarAPersona("una consulta del ayudante"), { t: "Ver opciones", a: "menu" }]);
+    decir(`<p>Ya usaste las respuestas escritas de hoy. Para seguir conversando, escríbenos por WhatsApp o llámanos al <strong>${esc(TIENDA.telefonoConsultas)}</strong> y te ayudamos con gusto.</p><p class="letra-chica">Los botones del ayudante y las preguntas frecuentes no tienen límite.</p>`, [...pasarAPersona("una consulta del ayudante"), { t: "Ver opciones", a: "menu" }]);
   }
   async function preguntarIA(texto, siFalla) {
     // Si ya usó sus respuestas con IA de hoy: responden las reglas o se pasa a una persona, sin gastar.
@@ -335,16 +335,16 @@
       if (quedan !== null) guardarCupo(quedan, limiteIA);
       let acciones = d.acciones || [], aviso;
       if (quedan === 0) {
-        aviso = `<p class="nota-ia aviso-limite"><strong>Esta fue mi última respuesta con inteligencia artificial de hoy.</strong> Para seguir, conversa directamente con nosotros por WhatsApp o llamada al ${esc(TIENDA.telefonoConsultas)}.</p>`;
+        aviso = `<p class="nota-ia aviso-limite"><strong>Esta fue mi última respuesta escrita de hoy.</strong> Para seguir, conversa directamente con nosotros por WhatsApp o llamada al ${esc(TIENDA.telefonoConsultas)}.</p>`;
         acciones = ["persona", ...acciones.filter(a => a !== "persona")];
         modoIA = false;
       } else if (quedan === 1) {
-        aviso = `<p class="nota-ia aviso-limite">Me queda <strong>1 respuesta</strong> con inteligencia artificial para ti hoy. Si tu consulta sigue, mejor conversa directamente con nosotros:</p>`;
+        aviso = `<p class="nota-ia aviso-limite">Me queda <strong>1 respuesta escrita</strong> para ti hoy. Si tu consulta sigue, mejor conversa directamente con nosotros:</p>`;
         acciones = ["persona", ...acciones.filter(a => a !== "persona")];
       } else {
-        const resto = quedan !== null ? ` Te quedan ${quedan} respuestas con IA hoy.` : "";
-        aviso = avisoIAMostrado ? `<p class="nota-ia">Respuesta con IA.${resto}</p>`
-          : `<p class="nota-ia">Respuesta automática con inteligencia artificial: puede equivocarse. Precios, stock y pedidos te los confirma la tienda por WhatsApp.${resto}</p>`;
+        const resto = quedan !== null ? ` Te quedan ${quedan} respuestas escritas hoy.` : "";
+        aviso = avisoIAMostrado ? `<p class="nota-ia">Respuesta automática.${resto}</p>`
+          : `<p class="nota-ia">Respuesta automática: puede tener errores. Precios, stock y pedidos te los confirma la tienda por WhatsApp.${resto}</p>`;
       }
       avisoIAMostrado = true;
       decir(parrafos(d.respuesta) + aviso, botonesIA(acciones, texto));
@@ -365,9 +365,9 @@
       const cupo = leerCupo();
       const limite = cupo && cupo.limite ? cupo.limite : limiteIA;
       const nota = iaAgotada()
-        ? `Hoy ya usaste tus respuestas con inteligencia artificial: puedes usar los botones, que no tienen límite, o conversar con nosotros.`
-        : `Soy automático y para las preguntas escritas uso inteligencia artificial, con un límite de <strong>${limite} respuestas al día</strong> por persona (los botones no tienen límite). Si necesitas más, te paso con una persona.`;
-      decir(`<p>Hola 👋 Soy el ayudante de Angie's Secret. Te ayudo con productos, materiales, tallas, envíos, tu pedido o la página. Escríbeme como quieras o elige una opción.</p><p class="letra-chica">${nota}</p>`, MENU);
+        ? `Hoy ya usaste tus respuestas escritas: puedes usar los botones, que no tienen límite, o conversar con nosotros.`
+        : `Respondo de forma automática. Para preguntas escritas tengo un límite de <strong>${limite} respuestas al día</strong> por persona (los botones no tienen límite). Si necesitas más, te paso con una persona.`;
+      decir(`<p>Hola 👋 Soy el asistente virtual de Angie's Secret. Te ayudo con productos, materiales, tallas, envíos, tu pedido o la página. Escríbeme como quieras o elige una opción.</p><p class="letra-chica">${nota}</p>`, MENU);
       medir("ayudante_abrir");
     }
     setTimeout(() => entrada.focus(), 50);
