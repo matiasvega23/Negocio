@@ -205,14 +205,21 @@
     temas.sort((a, b) => b.n - a.n || PRIORIDAD.indexOf(a.id) - PRIORIDAD.indexOf(b.id));
     const principal = temas[0] ? temas[0].id : null;
     if (WSP_NO_ABRE.test(norm(t)) && NO_FUNCIONA.test(norm(t))) { ultimoTema = "pedido"; medir("ayudante_tema", { tema: "pedido_wsp" }); SUB.wsp(); return; }
-    // Si ya está conversando con la IA, sigue con ella (entiende el contexto), salvo temas que las reglas resuelven mejor.
-    if (modoIA && !esperandoProducto && !["humano", "datos", "seguridad", "descuento"].includes(principal)) { preguntarIA(t); return; }
     const r = buscarInteligente(t);
-    // Una pregunta larga que no nombra una prenda concreta ("algo para mi abuela que siempre tiene frío") la entiende mejor la IA.
-    const conversacional = palabras.length >= 6 && !r.prenda;
-    const nombraPrenda = r.entendido.length > 0 && r.lista.length > 0 && !conversacional;
+    // Si la IA no está disponible, se responde con las reglas: el tema detectado, las prendas nombradas o el menú.
+    const conReglas = () => principal ? tema(principal, t) : r.lista.length && (r.prenda || r.publico) ? mostrarProductos(t) : noEntendido();
+    // Si ya está conversando con la IA, sigue con ella (entiende el contexto), salvo temas que las reglas resuelven mejor.
+    if (modoIA && !esperandoProducto && !["humano", "datos", "seguridad", "descuento"].includes(principal)) { preguntarIA(t, conReglas); return; }
+    // Una pregunta larga, escrita como conversación y sin nombrar una prenda concreta ("algo para mi mamá, le gusta
+    // dormir cómoda"), la responde mejor la IA, salvo temas en que las respuestas oficiales son mejores.
+    const conversacional = (palabras.length >= 6 && !r.prenda) || palabras.length >= 9 || (principal === "regalo" && palabras.length >= 5);
+    if (conversacional && !esperandoProducto && (!principal || ["regalo", "disponibilidad", "precio", "tallas", "unidades", "mayor", "envio", "horario", "pago"].includes(principal))) { preguntarIA(t, conReglas); return; }
+    // Solo se muestran prendas si se nombró una prenda o para quién es (no por coincidencias de palabras sueltas).
+    const nombraPrenda = r.lista.length > 0 && (r.prenda || !!r.publico) && !conversacional;
     // "¿Cómo sé mi talla de sostén?": es una pregunta de tallas, no de stock.
     if (principal === "tallas" && !temas.some(x => x.id === "disponibilidad")) {
+      // "fajas talla XL" busca la prenda; "¿cómo sé mi talla?" abre la guía.
+      if (r.prenda && r.lista.length && !/\b(como|cual|que|medir|medirme|saber)\b/.test(norm(t))) { medir("ayudante_tema", { tema: "producto" }); mostrarProductos(t); return; }
       if (r.entendido.some(e => /sosten/.test(norm(e)))) { medir("ayudante_tema", { tema: "faq_talla-sosten" }); decir(respuesta("talla-sosten"), [{ t: "Abrir la guía de tallas", a: "tallas" }, ...masAyuda]); return; }
       tema("tallas"); return;
     }
@@ -231,7 +238,7 @@
     if (principal) { tema(principal, t); return; }
     const q = mejorPregunta(palabras);
     if (q) { medir("ayudante_tema", { tema: "faq_" + q.id }); decir(`<p><strong>${esc(q.p)}</strong></p>${formatearRespuesta(q.r)}`, masAyuda); return; }
-    if (r.lista.length && !conversacional) { mostrarProductos(t); return; }
+    if (r.lista.length && (r.prenda || r.publico) && !conversacional) { mostrarProductos(t); return; }
     // Las reglas no entendieron: le pregunta a la IA (si no está disponible, vuelve a las reglas).
     preguntarIA(t);
   }
@@ -263,7 +270,7 @@
     return b;
   }
   function visitante() { try { return localStorage.getItem("angie-v") || ""; } catch (e) { return ""; } }
-  async function preguntarIA(texto) {
+  async function preguntarIA(texto, siFalla) {
     charla.push({ r: "u", t: texto });
     while (charla.length > 6) charla.shift();
     const escribiendo = document.createElement("div");
@@ -295,7 +302,7 @@
     // Sin IA (tope de gasto, error o sin conexión): responden las reglas, nunca el silencio.
     charla.pop(); modoIA = false;
     if (d && d.motivo) medir("ayudante_tema", { tema: "ia_no_" + d.motivo });
-    noEntendido(d && d.motivo === "rapido");
+    if (siFalla && !(d && d.motivo === "rapido")) siFalla(); else noEntendido(d && d.motivo === "rapido");
   }
 
   /* ---------- Abrir, cerrar y botones ---------- */
