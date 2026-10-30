@@ -7,7 +7,7 @@ import { ambiente, ahoraChile, azar, json, leerJson, limpiarTexto, idValido, ale
 const HEX = /^[a-f0-9]{8,32}$/;
 const FUENTES = new Set(["google", "instagram", "facebook", "whatsapp", "directo", "interno", "otro"]);
 const PAGINAS = new Set(["inicio", "privacidad", "terminos", "otra"]);
-const LUGARES = new Set(["cabecera", "portada", "ficha", "pedido", "regalo", "encargo", "visita", "aviso", "ayudante", "tallas", "mayor", "vacio", "sugerencia", "faq"]);
+const LUGARES = new Set(["cabecera", "portada", "ficha", "pedido", "regalo", "encargo", "visita", "aviso", "ayudante", "tallas", "mayor", "vacio", "sugerencia", "faq", "conseguir"]);
 const CANALES = new Set(["wsp_tienda", "wsp_coordinacion", "llamar", "copiar", "correo"]);
 const ent = (x, min, max) => Number.isFinite(+x) ? Math.max(min, Math.min(max, Math.round(+x))) : min;
 const corto = s => limpiarTexto(s, 24).replace(/ /g, "_");

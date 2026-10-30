@@ -95,13 +95,22 @@ Lo que se ajustó en el sitio:
 - Retracto según el reglamento de 2024: ropa interior y productos de higiene solo si se abrió el sello después de la entrega (sin "trajes de baño"); en la tienda, si se compra por catálogo sin ver la prenda, también hay retracto.
 - Términos versión 2 (quién vende, mayores de 18, solo Chile, fotos referenciales, retiro de contenido a pedido del dueño, tribunal del domicilio del consumidor) y privacidad versión 5 (lo que guarda el navegador, base legal de cada uso, menores de edad, Ley 21.719).
 
+## Buscador que vende (versión 4.10)
+
+- Si lo tenemos, se muestra; si no, se ofrece conseguirlo: toda búsqueda termina con "¿No ves exactamente lo que buscas? Escríbenos... si no lo tenemos, lo buscamos con nuestros proveedores para conseguírtelo" y un botón de WhatsApp con lo buscado ya escrito. Si la tienda tiene la prenda sin foto (PRODUCTOS_TIENDA), lo dice.
+- La búsqueda generaliza: "bóxer", "calzones", "calzoncillos", "camisetas", "calcetas" o "ropa interior" muestran las opciones de adultos y de niños, cada grupo en su sección (las de niños nunca intercaladas con las de adultos). Con palabras de lencería (sostén, colaless, encaje, fajas, bikini, conjunto...) no aparecen prendas de niños. "Niña/niño" busca solo en niños y "dama/hombre", solo en adultos.
+- Con "Todos" en "¿Para quién?", la sección "Ropa interior de hombre" muestra también los bóxer y calzoncillos de niño, y "Camisetas y primeras capas" las camisetas de niños, al final y bajo el subtítulo "Para niños" (TAMBIEN_EN en js/app.js).
+- Si se pide una talla ("sostén talla 46", "calza XL"), primero salen las prendas que la tienen según su ficha.
+- Sin cantidades a la vista del cliente: las secciones, el resumen, la portada, el ayudante y la IA no dicen cuántas prendas hay.
+- Lo que escribe la tienda (ayudante, IA, mensajes) sigue sin juntar ropa interior de adultos con niños: el ayudante muestra un solo grupo y ofrece "Ver todas las opciones" en el catálogo.
+
 ## Reglas de la marca
 
-- Nunca juntar lencería o ropa interior con niños en un mismo texto, imagen o filtro.
+- Nunca juntar lencería o ropa interior con niños en un mismo texto o imagen. Excepción decidida el 30 de octubre de 2026: la búsqueda y las secciones de ropa interior de hombre y de camisetas muestran también las prendas de niños, siempre en su propio bloque y nunca con lencería.
 - Solo fotos propias del local o de los productos; sin logos ni personajes de otras marcas, sin modelos y sin fotos de otras tiendas.
 - Sin promesas de salud ni superlativos: lo de diabéticos, cobre o fajas se dice como "según su fabricante".
 - Nada que recuerde a Victoria's Secret.
 
 ## Historial de versiones
 
-Cada versión es un cambio con su nombre en el historial ("Versión 2" a "Versión 4.9"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic, sin gastar créditos.
+Cada versión es un cambio con su nombre en el historial ("Versión 2" a "Versión 4.10"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic, sin gastar créditos.

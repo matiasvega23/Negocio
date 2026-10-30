@@ -128,7 +128,8 @@ function crearIndice() {
   const vocab = new Map();
   const conjunto = texto => { const s = new Set(); palabras(texto).forEach(w => { const f = fon(w); if (f.length < 2) return; s.add(f); if (!vocab.has(f)) vocab.set(f, w); }); return s; };
   const nombreCat = Object.fromEntries(CATEGORIAS);
-  const productos = PRODUCTOS.map(p => ({ p, campos: [[conjunto(p.n), 3], [conjunto(p.k || ""), 2.5], [conjunto(nombreCat[p.cat] || ""), 2], [conjunto(p.d), 1], [conjunto((p.col || []).join(" ")), 1]] }));
+  // "Ropa interior" abarca las secciones de ropa interior y la ropa interior de niños (marcada interior: true).
+  const productos = PRODUCTOS.map(p => ({ p, campos: [[conjunto(p.n), 3], [conjunto(`${p.k || ""}${CATS_INTERIOR.has(p.cat) || p.interior ? " interior" : ""}`), 2.5], [conjunto(nombreCat[p.cat] || ""), 2], [conjunto(p.d), 1], [conjunto((p.col || []).join(" ")), 1]] }));
   const grupos = GRUPOS.map(([etiqueta, ws]) => ({ etiqueta, f: new Set(ws.split(" ").map(fon)) }));
   const publico = Object.entries(PUBLICO).map(([clave, ws]) => ({ clave, f: new Set(ws.split(" ").map(fon)) }));
   indice = { productos, grupos, publico, vocab };
@@ -155,12 +156,58 @@ function entenderPalabra(w) {
   }
   return null;
 }
+// Tallas que pide la persona ("talla 46", "xl", "3xl", "40c") y si cada prenda la tiene según su ficha.
+// Las letras se igualan (XXL = 2XL). Si la ficha no dice tallas, o usa otro sistema (letras y la persona pidió un número),
+// no se sabe: la prenda se muestra igual, después de las que sí la tienen.
+const ORDEN_LETRAS = ["xs", "s", "m", "l", "xl", "2xl", "3xl", "4xl", "5xl"];
+const LETRA = "x{0,4}l|[2-5] ?xl|xs|s|m";
+function normTalla(t) {
+  t = norm(t).replace(/\s+/g, "");
+  const x = t.match(/^(x+)l$/);
+  return x && x[1].length >= 2 ? x[1].length + "xl" : t;
+}
+function tallaPedida(texto) {
+  const n = norm(texto);
+  const m = n.match(new RegExp(`\\btallas?\\s*(?:n(?:ro|umero)?\\.?\\s*)?(\\d{1,2}\\s?[a-f]{0,2}|${LETRA}|unica|especial)\\b`)) || n.match(/\b(x{1,4}l|[2-5] ?xl)\b/);
+  return m ? { texto: m[0], talla: normTalla(m[1]) } : null;
+}
+function tallasFicha(p) {
+  const t = norm([...(p.tallas || []), p.tallasTexto || ""].join(", ")).replace(/\(/g, " ").replace(/\)/g, " ");
+  const r = { nums: [], letras: new Set(), copas: new Set(), especial: /unica|especial/.test(t) };
+  for (const m of t.matchAll(/(\d{1,2})\s*(?:a|-|hasta(?: talla)?)\s*(\d{1,2})\b/g)) r.nums.push([+m[1], +m[2]]);
+  for (const m of t.matchAll(/(?:^|[^\da-z])(\d{1,2})([a-f]{0,2})(?![\da-z])/g)) { r.nums.push([+m[1], +m[1]]); if (m[2]) r.copas.add(m[2]); }
+  for (const m of t.matchAll(new RegExp(`(?:^|[^\\da-z])(${LETRA})(?![\\da-z])`, "g"))) r.letras.add(normTalla(m[1]));
+  for (const m of t.matchAll(new RegExp(`\\b(${LETRA}) (?:a|hasta) (?:talla )?(${LETRA})\\b`, "g"))) {
+    const a = ORDEN_LETRAS.indexOf(normTalla(m[1])), b = ORDEN_LETRAS.indexOf(normTalla(m[2]));
+    if (a >= 0 && b >= a) ORDEN_LETRAS.slice(a, b + 1).forEach(x => r.letras.add(x));
+  }
+  if (/desde m\b/.test(t)) ORDEN_LETRAS.slice(2).forEach(x => r.letras.add(x));
+  for (const m of t.matchAll(/copas? ([a-f ,y]+)/g)) m[1].split(/[ ,]+|\by\b/).filter(c => /^[a-f]{1,2}$/.test(c)).forEach(c => r.copas.add(c));
+  return r;
+}
+// true: la ficha dice que tiene esa talla; false: dice tallas y esa no está; null: no se sabe.
+function tieneTalla(p, talla) {
+  const d = tallasFicha(p);
+  if (/^\d/.test(talla)) {
+    const num = parseInt(talla, 10), copa = talla.replace(/^\d+/, "");
+    if (!d.nums.length) return null;
+    if (!d.nums.some(([a, b]) => num >= a && num <= b)) return false;
+    return copa && d.copas.size ? d.copas.has(copa) : true;
+  }
+  if (talla === "unica" || talla === "especial") return d.especial || null;
+  return d.letras.size ? d.letras.has(talla) : null;
+}
+// Palabras de lencería: con ellas la búsqueda muestra solo prendas de adultos ("peto" sí incluye los de niña).
+const LENCERIA = /\b(sosten\w*|bra|bras|brasier\w*|bracier\w*|brassier\w*|sujetador\w*|corpin\w*|colal\w*|tangas?|hilos?|cachetero\w*|bikinis?|pantaletas?|encaje\w*|sexy|lenceria|babydoll|camison\w*|portaligas|transparen\w*|fajas?|reductor\w*|modelador\w*|cinturillas?|body|bodys|conjuntos?|push|copas?|maternal\w*)\b/;
+const esLenceria = (texto, usadas) => LENCERIA.test(texto) || usadas.some(u => ["lencería", "fajas"].includes(u.etiqueta) || (u.etiqueta === "sostenes" && u.f !== fon("peto")));
+const esDeNinos = p => p.para.includes("ninos");
 const cacheBusqueda = new Map();
 function buscarInteligente(consulta) {
   const q = String(consulta || "").trim();
   if (cacheBusqueda.has(q)) return cacheBusqueda.get(q);
   if (!indice) crearIndice();
-  const texto = norm(q).replace(/ropa interior/g, "interior").replace(/baby ?doll/g, "babydoll").replace(/cuello (alto|tortuga)/g, "beatle");
+  const pedida = tallaPedida(q);
+  const texto = norm(q).replace(pedida ? pedida.texto : /$^/, " ").replace(/ropa interior/g, "interior").replace(/baby ?doll/g, "babydoll").replace(/cuello (alto|tortuga)/g, "beatle");
   const palabras = texto.split(/[^a-z]+/).filter(w => w.length > 1 && !PARADAS.has(w));
   let publico = null;
   const contenido = [];
@@ -206,13 +253,29 @@ function buscarInteligente(consulta) {
     lista = puntajes.filter(x => x.total >= tope * 0.5).sort((a, b) => b.total - a.total).map(x => x.p);
     if (publico === "ninos" && !lista.length) lista = deNinos;
   }
-  // Regla de la marca: las prendas de adultos y las de niños no se muestran juntas. Gana el grupo de la que más coincide
-  // ("ballerina" muestra las de niña; "calcetas", las de adultos; para niños, escribir "niño" o "niña").
-  if (publico !== "ninos" && lista.length) { const ninosPrimero = lista[0].para.includes("ninos"); lista = lista.filter(p => p.para.includes("ninos") === ninosPrimero); }
+  // Regla de venta: la búsqueda muestra todo lo que coincide, de adultos y de niños ("bóxer" muestra los de hombre y los
+  // de niño; "calzones", los de dama y los de niña). Las de niños van en su propia sección del catálogo y nunca se intercalan:
+  // primero el grupo de la prenda que más coincide. Regla de la marca: con palabras de lencería (sostén, colaless, encaje,
+  // fajas...) nunca aparecen prendas de niños, y los textos que escribe la tienda (ayudante, mensajes) siguen separados.
+  if (publico !== "ninos" && lista.length && esLenceria(texto, usadas)) lista = lista.filter(p => !p.para.includes("ninos"));
+  if (publico !== "ninos" && lista.length) {
+    const ninosPrimero = lista[0].para.includes("ninos");
+    lista = [...lista.filter(p => p.para.includes("ninos") === ninosPrimero), ...lista.filter(p => p.para.includes("ninos") !== ninosPrimero)];
+  }
+  // Si pidió una talla: primero las prendas que la tienen según su ficha, después las que no dicen; las que no la tienen, no.
+  let talla = null;
+  if (pedida && (usadas.length || publico)) {
+    const si = lista.filter(p => tieneTalla(p, pedida.talla) === true), nose = lista.filter(p => tieneTalla(p, pedida.talla) === null);
+    lista = [...si, ...nose];
+    talla = { pedida: pedida.talla.toUpperCase(), confirmadas: si.length, sinDato: nose.length };
+    entendido.push(`talla ${talla.pedida}`);
+  }
   if (publico) entendido.push(publico === "ninos" ? "ropa para niños" : `para ${publico}`);
   // Regla de la marca: si la búsqueda es para niños, no se repite ninguna otra palabra (por ejemplo, de ropa interior).
   if (publico === "ninos") entendido.splice(0, entendido.length, "ropa para niños");
-  const r = { q, lista, ids: new Set(lista.map(p => p.id)), entendido, desconocidas, publico, prenda: usadas.some(u => u.prenda), regalo: /\bregalo/.test(texto) };
+  const r = { q, lista, ids: new Set(lista.map(p => p.id)), entendido, desconocidas, publico, talla, prenda: usadas.some(u => u.prenda), regalo: /\bregalo/.test(texto),
+    // El primer grupo (adultos o niños, el que más coincide) y el otro, para mostrarlos por separado.
+    principal: lista.filter(p => esDeNinos(p) === (lista.length ? esDeNinos(lista[0]) : false)), otro: lista.filter(p => esDeNinos(p) !== (lista.length ? esDeNinos(lista[0]) : false)) };
   cacheBusqueda.set(q, r);
   return r;
 }
@@ -232,10 +295,22 @@ function enTienda(texto) {
     if (!!i.ninos !== paraNinos || (i.soloSiPiden && !pideBoxer)) continue;
     const ws = new Set(norm(`${i.n} ${i.k || ""}`).split(/[^a-z]+/).filter(w => w.length > 2).map(fon));
     const coincide = palabras.filter(w => ws.has(w)).length;
-    if (coincide) res.push({ n: i.n, grupo: g.grupo, coincide });
+    if (coincide) res.push({ n: i.n, grupo: g.grupo, coincide, completo: coincide === palabras.length });
   }
   const max = Math.max(0, ...res.map(x => x.coincide));
   return res.filter(x => x.coincide === max);
+}
+// Lo que hay en la tienda y coincide con todo lo que se escribió (para nombrarlo junto a los resultados del catálogo).
+const tiendaExacta = q => { const t = enTienda(q).filter(x => x.completo); return t.length && t.length <= 4 ? t : []; };
+// Regla de venta: si lo tenemos, se muestra; si no, que nos escriba y lo buscamos con los proveedores para conseguírselo.
+const PROMESA_CONSEGUIR = "si no lo tenemos, lo buscamos con nuestros proveedores para conseguírtelo";
+function pedirPorWhatsApp(q) { return wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${q}. ¿Lo tienen o me lo pueden conseguir? Talla y color: `); }
+const iconoWsp = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>';
+function bloqueConseguir(q, titulo) {
+  const t = tiendaExacta(q);
+  return `<div class="conseguir">${t.length ? `<p><strong>En la tienda también hay</strong> ${esc(listaTienda(t))}.</p>` : ""}
+    <p>${titulo || "¿No ves exactamente lo que buscas?"} Escríbenos: te mostramos lo que hay en la tienda y, ${PROMESA_CONSEGUIR}.</p>
+    <a class="boton boton-wsp" href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener">${iconoWsp}Pedir «${esc(q)}» por WhatsApp</a></div>`;
 }
 const listaTienda = its => its.map(x => x.n.charAt(0).toLowerCase() + x.n.slice(1)).join(", ").replace(/, ([^,]*)$/, " y $1");
 
@@ -285,32 +360,48 @@ function tarjeta(p) {
     </div>
   </li>`;
 }
+// Prendas de niños que también se muestran en una sección de adultos (después de las de adultos y con su subtítulo):
+// los bóxer y calzoncillos de niño en "Ropa interior de hombre" y las camisetas de niños en "Camisetas y primeras capas".
+// Solo con "Todos" en "¿Para quién?". Regla de la marca: nunca en secciones de lencería (sostenes, calzones, fajas).
+const TAMBIEN_EN = {
+  "interior-hombre": p => esDeNinos(p) && /\b(boxer|calzoncillo|slip)/.test(norm(p.n)),
+  "camisetas": p => esDeNinos(p) && /^camiseta/.test(norm(p.n))
+};
 function pintar() {
   document.querySelectorAll("[data-temporada]").forEach(b => b.setAttribute("aria-pressed", b.dataset.temporada === estado.temporada));
   document.querySelectorAll("[data-para]").forEach(b => b.setAttribute("aria-pressed", b.dataset.para === estado.para));
   const lista = PRODUCTOS.filter(visible);
+  const r = estado.q ? buscarInteligente(estado.q) : null;
   let html = "";
-  const secciones = [];
+  const secciones = [], yaMostradas = new Set();
+  const orden = (a, b) => (a.t === "todo") - (b.t === "todo");
   for (const [cat, nombre] of CATEGORIAS) {
-    const items = lista.filter(p => p.cat === cat)
-      .sort((a, b) => (a.t === "todo") - (b.t === "todo"));
-    if (!items.length) continue;
-    secciones.push(`<a class="chip" href="#g-${cat}">${esc(nombre)} <small>${items.length}</small></a>`);
-    html += `<section class="grupo" aria-labelledby="g-${cat}"><h3 id="g-${cat}">${nombre}<small>${items.length} ${items.length === 1 ? "producto" : "productos"}</small></h3><ul class="productos">${items.map(tarjeta).join("")}</ul></section>`;
+    // Al buscar, cada prenda sale una sola vez (en la primera sección donde aparece).
+    const items = lista.filter(p => p.cat === cat && !(r && yaMostradas.has(p.id))).sort(orden);
+    const extra = estado.para === "todos" && TAMBIEN_EN[cat] ? lista.filter(p => TAMBIEN_EN[cat](p) && !(r && yaMostradas.has(p.id))).sort(orden) : [];
+    if (!items.length && !extra.length) continue;
+    [...items, ...extra].forEach(p => yaMostradas.add(p.id));
+    // Sin cantidades: el cliente ve opciones, no cuántas prendas hay.
+    secciones.push(`<a class="chip" href="#g-${cat}">${esc(nombre)}</a>`);
+    html += `<section class="grupo" aria-labelledby="g-${cat}"><h3 id="g-${cat}">${nombre}</h3>${items.length ? `<ul class="productos">${items.map(tarjeta).join("")}</ul>` : ""}${extra.length ? `<h4 class="sub-ninos">Para niños</h4><ul class="productos">${extra.map(tarjeta).join("")}</ul>` : ""}</section>`;
   }
   if (!lista.length) {
-    const busca = estado.q ? `«${esc(estado.q)}»` : "eso";
-    const tienda = estado.q ? enTienda(estado.q).slice(0, 6) : [];
-    html = `<div class="vacio"><p>No encontramos ${busca} con estos filtros. Prueba con “Todo” en temporada. ${tienda.length ? `<strong>En la tienda sí tenemos ${esc(listaTienda(tienda))}</strong>, aunque todavía no están en la página: pídelas por WhatsApp.` : "En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido."}</p>
-      <a class="boton boton-wsp" href="${wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${estado.q || ""}`)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>${estado.q ? `Pedir «${esc(estado.q)}» por WhatsApp` : "Preguntar por WhatsApp"}</a></div>`;
+    // ¿Hay resultados con otros filtros? Se ofrece verlos antes que nada.
+    const enOtros = r && r.lista.length && (estado.temporada !== "todo" || estado.para !== "todos");
+    html = `<div class="vacio">${enOtros ? `<p>Con estos filtros no aparece «${esc(estado.q)}», pero sí lo tenemos en otras temporadas o para otro público.</p><p><button type="button" class="boton boton-principal" data-ver-todo>Ver todas las opciones</button></p>` : ""}
+      ${estado.q ? bloqueConseguir(estado.q, enOtros ? "" : `No vemos «${esc(estado.q)}» en el catálogo de la página.`) : `<p>No hay prendas con estos filtros. Prueba con “Todo” en temporada o escríbenos por WhatsApp: te mostramos lo que hay en la tienda.</p><a class="boton boton-wsp" href="${wspUrl("Hola Angie's Secret 👋 Estoy buscando: ")}" target="_blank" rel="noopener">${iconoWsp}Preguntar por WhatsApp</a>`}</div>`;
+  } else if (estado.q) {
+    // Regla de venta: además de lo que hay, siempre la opción de pedirlo y que se lo consigamos.
+    html += bloqueConseguir(estado.q);
   }
   // Con varias secciones, un índice para saltar a la que interesa (el catálogo es largo).
   if (secciones.length > 2) html = `<nav class="saltos" aria-label="Secciones del catálogo">${secciones.join("")}</nav>` + html;
   $("#listado").innerHTML = html;
   const t = estado.temporada === "todo" ? "de todas las temporadas" : `${NOMBRE_T[estado.temporada]} y para todo el año`;
-  const entendido = estado.q ? buscarInteligente(estado.q).entendido : [];
-  $("#resumen").textContent = lista.length ? `${estado.q ? `Buscaste «${estado.q}»${entendido.length ? ` (entendimos: ${entendido.join(", ")})` : ""}. ` : ""}Mostrando ${lista.length} ${lista.length === 1 ? "producto" : "productos"}${NOMBRE_P[estado.para]} ${t}.` : "";
-  $("#avanzar-catalogo").textContent = lista.length ? `Avanzar: ver ${lista.length === 1 ? "1 prenda" : `${lista.length} prendas`}` : "Avanzar";
+  const entendido = r ? r.entendido : [];
+  const notaTalla = r && r.talla ? ` Primero las que tienen talla ${r.talla.pedida} según su ficha; en las demás te confirmamos la talla por WhatsApp.` : "";
+  $("#resumen").textContent = lista.length ? `${r ? `Buscaste «${estado.q}»${entendido.length ? ` (entendimos: ${entendido.join(", ")})` : ""}. Estas son las opciones${NOMBRE_P[estado.para]} ${t}.${notaTalla}` : `Prendas${NOMBRE_P[estado.para]} ${t}.`}` : "";
+  $("#avanzar-catalogo").textContent = lista.length ? (r ? "Avanzar: ver las opciones" : "Avanzar: ver las prendas") : "Avanzar";
   const u = new URL(location.href);
   u.searchParams.set("temporada", estado.temporada);
   estado.para === "todos" ? u.searchParams.delete("para") : u.searchParams.set("para", estado.para);
@@ -328,12 +419,14 @@ $("#buscar").addEventListener("input", e => {
     revisarTexto(q, "catalogo"); medir("buscar", { q, res: buscarInteligente(q).lista.length, lugar: "catalogo" });
   }, 1500);
 });
-$("#listado").addEventListener("click", e => { const b = e.target.closest("[data-abrir]"); if (b) abrirProducto(b.dataset.abrir); });
+$("#listado").addEventListener("click", e => {
+  const b = e.target.closest("[data-abrir]"); if (b) abrirProducto(b.dataset.abrir);
+  if (e.target.closest("[data-ver-todo]")) { estado.temporada = "todo"; estado.para = "todos"; pintar(); $("#resumen").scrollIntoView({ block: "start" }); }
+});
 $("#avanzar-catalogo").addEventListener("click", () => { const r = $("#resumen"); r.scrollIntoView({ block: "start" }); r.focus({ preventScroll: true }); });
 
 /* ---------- Buscador de la portada ---------- */
 const formPortada = $("#buscador-portada"), panelPortada = $("#sugerencias-portada");
-function pedirPorWhatsApp(q) { return wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${q}`); }
 function irAlCatalogo(r) {
   estado.temporada = "todo";
   estado.para = r.publico || "todos";
@@ -350,13 +443,15 @@ function pintarSugerencias(q) {
   const regalo = r.regalo ? `<p class="letra-chica">¿Es para regalo? <a href="#regalo">Arma tu regalo</a>. ${esc(textoEnvoltorio("dato"))}</p>` : "";
   if (!r.lista.length) {
     const tienda = enTienda(q).slice(0, 6);
-    panelPortada.innerHTML = `${entendimos}<p class="sin-resultado">${tienda.length ? `«${esc(q)}» todavía no está en el catálogo de la página, pero <strong>en la tienda sí tenemos ${esc(listaTienda(tienda))}</strong>. Pídelo por WhatsApp y te confirmamos tallas, colores y precio.` : `No encontramos «${esc(q)}» en el catálogo de la página. En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.`}</p>
-      <div class="acciones-sugerencia"><a class="boton boton-wsp" href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Pedir «${esc(q)}» por WhatsApp</a><a class="boton-texto" href="#encargo">Ver pedidos especiales</a></div>`;
+    panelPortada.innerHTML = `${entendimos}<p class="sin-resultado">${tienda.length ? `«${esc(q)}» todavía no tiene foto en la página, pero <strong>en la tienda sí tenemos ${esc(listaTienda(tienda))}</strong>. Pídelo por WhatsApp y te confirmamos tallas, colores y precio.` : `No vemos «${esc(q)}» en el catálogo de la página. Escríbenos: te mostramos lo que hay en la tienda y, ${PROMESA_CONSEGUIR}.`}</p>
+      <div class="acciones-sugerencia conseguir-portada"><a class="boton boton-wsp" href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener">${iconoWsp}Pedir «${esc(q)}» por WhatsApp</a><a class="boton-texto" href="#encargo">Ver pedidos especiales</a></div>`;
   } else {
-    const n = r.lista.length;
-    panelPortada.innerHTML = `${entendimos}<ul class="sugerencias-lista">${r.lista.slice(0, 4).map(p => `<li><button type="button" data-abrir-sugerencia="${p.id}"><img src="${foto(p.fotos[0])}" alt="" width="44" height="55" loading="lazy" decoding="async"><span>${esc(p.n)}</span></button></li>`).join("")}</ul>
-      ${regalo}<button type="submit" class="boton boton-principal">Ver ${n === 1 ? "el resultado" : `los ${n} resultados`} en el catálogo</button>
-      ${r.desconocidas.length ? `<p class="letra-chica">No reconocimos «${esc(r.desconocidas.join(" "))}». Si buscas algo más específico, <a href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener">pregúntanos por WhatsApp</a>.</p>` : ""}`;
+    // Los resultados se muestran como opciones, sin decir cuántos hay. Las de niños, en su propia fila.
+    const fila = ps => `<ul class="sugerencias-lista">${ps.map(p => `<li><button type="button" data-abrir-sugerencia="${p.id}"><img src="${foto(p.fotos[0])}" alt="" width="44" height="55" loading="lazy" decoding="async"><span>${esc(p.n)}</span></button></li>`).join("")}</ul>`;
+    const otro = r.otro.length ? `<p class="sugerencias-otro">${esDeNinos(r.otro[0]) ? "Para niñas y niños" : "Para adultos"}</p>${fila(r.otro.slice(0, 2))}` : "";
+    panelPortada.innerHTML = `${entendimos}${fila(r.principal.slice(0, r.otro.length ? 3 : 4))}${otro}
+      ${regalo}<button type="submit" class="boton boton-principal">${r.lista.length === 1 ? "Verlo en el catálogo" : "Ver todas las opciones en el catálogo"}</button>
+      <p class="letra-chica conseguir-portada">${r.desconocidas.length ? `No reconocimos «${esc(r.desconocidas.join(" "))}». ` : "¿No es exactamente lo que buscas? "}<a href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener">Escríbenos</a> y, ${PROMESA_CONSEGUIR}.</p>`;
   }
   panelPortada.hidden = false;
 }
@@ -936,7 +1031,7 @@ document.querySelectorAll("[data-wsp]").forEach(a => { a.href = wspUrl(a.dataset
 document.querySelectorAll("[data-wspc]").forEach(a => { a.href = wspConsultas(a.dataset.wspc); });
 document.querySelectorAll("[data-envoltorio]").forEach(s => { s.textContent = textoEnvoltorio(s.dataset.envoltorio); });
 // Qué botones de WhatsApp se usan más (sin el contenido del mensaje).
-const LUGAR_WSP = [["#ventana-pedido", "pedido"], ["#ventana-producto", "ficha"], ["#ventana-tallas", "tallas"], [".cabecera", "cabecera"], [".portada", "portada"], ["#regalo", "regalo"], ["#encargo", "encargo"], ["#visitanos", "visita"], ["#aviso-temporada", "aviso"], ["#ayudante", "ayudante"], ["#preguntas", "faq"], ["#sugerencias-portada", "sugerencia"], ["#listado", "vacio"]];
+const LUGAR_WSP = [[".conseguir, .conseguir-portada", "conseguir"], ["#ventana-pedido", "pedido"], ["#ventana-producto", "ficha"], ["#ventana-tallas", "tallas"], [".cabecera", "cabecera"], [".portada", "portada"], ["#regalo", "regalo"], ["#encargo", "encargo"], ["#visitanos", "visita"], ["#aviso-temporada", "aviso"], ["#ayudante", "ayudante"], ["#preguntas", "faq"], ["#sugerencias-portada", "sugerencia"], ["#listado", "vacio"]];
 document.addEventListener("click", e => {
   const a = e.target.closest('a[href*="wa.me/"]'); if (!a) return;
   if (a.matches("[data-mayor]")) medir("mayor");

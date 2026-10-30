@@ -187,16 +187,18 @@
       return;
     }
     if (!r.lista.length) {
-      decir(`<p>No veo «${esc(texto)}» en el catálogo de la página, pero en la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.</p>`, [
-        { t: "Pedir que lo busquen", href: wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${texto}`), externo: true, wsp: true, canal: "wsp_tienda" }, ...masAyuda]);
+      decir(`<p>No veo «${esc(texto)}» en el catálogo de la página, pero en la tienda hay más y, ${PROMESA_CONSEGUIR}.</p>`, [
+        { t: "Pedir que me lo consigan", href: pedirPorWhatsApp(texto), externo: true, wsp: true, canal: "wsp_tienda" }, ...masAyuda]);
       return;
     }
     const entendido = r.entendido.length ? ` <span class="letra-chica">(entendí: ${esc(r.entendido.join(", "))})</span>` : "";
-    const lista = r.lista.slice(0, 4).map(p => `<li><button type="button" data-ay="abrir:${p.id}"><img src="${foto(p.fotos[0])}" alt="" width="44" height="55" loading="lazy"><span>${esc(p.n)}<small>${esc(textoTallas(p))}</small></span></button></li>`).join("");
+    // Regla de la marca: lo que escribe el ayudante muestra un solo grupo (adultos o niños); el catálogo muestra los dos,
+    // cada uno en su sección. Sin decir cuántas prendas hay.
+    const lista = r.principal.slice(0, 4).map(p => `<li><button type="button" data-ay="abrir:${p.id}"><img src="${foto(p.fotos[0])}" alt="" width="44" height="55" loading="lazy"><span>${esc(p.n)}<small>${esc(textoTallas(p))}</small></span></button></li>`).join("");
     const tambien = tienda.length && tienda.length <= 4 ? `<p>En la tienda también hay ${esc(listaTienda(tienda))}.</p>` : "";
-    decir(`<p>Esto encontré en el catálogo${entendido}:</p><ul class="ayudante-productos">${lista}</ul>${tambien}<p>El catálogo no muestra el stock en tiempo real: la disponibilidad de tallas y colores te la confirmamos por WhatsApp.</p>`, [
-      { t: "Preguntar si hay", href: wspUrl(`Hola Angie's Secret 👋 ¿Tienen disponible: ${texto}?`), externo: true, wsp: true, canal: "wsp_tienda" },
-      ...(r.lista.length > 4 ? [{ t: `Ver los ${r.lista.length} en el catálogo`, a: "catalogo:" + texto }] : []), { t: "Otra pregunta", a: "menu" }]);
+    decir(`<p>Esto encontré en el catálogo${entendido}:</p><ul class="ayudante-productos">${lista}</ul>${tambien}<p>La disponibilidad de tallas y colores te la confirmamos por WhatsApp y, ${PROMESA_CONSEGUIR}.</p>`, [
+      { t: "Preguntar si hay", href: pedirPorWhatsApp(texto), externo: true, wsp: true, canal: "wsp_tienda" },
+      ...(r.lista.length > Math.min(4, r.principal.length) ? [{ t: "Ver todas las opciones", a: "catalogo:" + texto }] : []), { t: "Otra pregunta", a: "menu" }]);
   }
   function tema(id, texto) {
     ultimoTema = id; esperandoProducto = false;

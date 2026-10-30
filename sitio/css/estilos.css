@@ -175,6 +175,14 @@ button { font: inherit; }
 .producto .boton { margin-top: 12px; width: 100%; }
 .vacio { margin-top: 30px; padding: 26px; border: 2px dashed var(--linea); border-radius: 16px; background: #fff; max-width: 640px; }
 .vacio p { margin: 0 0 16px; }
+.vacio .conseguir { margin: 0; padding: 0; border: 0; background: none; }
+/* Prendas de niños que también aparecen en una sección de adultos */
+.sub-ninos { margin: 30px 0 14px; padding-top: 12px; border-top: 1px solid var(--linea); font: 700 1.3rem var(--f-tit); color: var(--noche); }
+/* "Te lo conseguimos": siempre al final de una búsqueda */
+.conseguir { margin-top: 34px; padding: 20px 22px; border-radius: 16px; background: var(--rubor); max-width: 640px; }
+.conseguir p { margin: 0 0 12px; }
+.sugerencias-otro { margin: 4px 0 4px; font-weight: 700; color: var(--suave); font-size: .9375rem; }
+.conseguir-portada a { font-weight: 700; }
 
 /* Encargos */
 .encargo { background: var(--noche); color: #E6E8F4; padding: 52px 0; margin-top: 30px; }

@@ -429,7 +429,7 @@ const PREGUNTAS_FRECUENTES = [
   { id: "pagar", cat: "pedidos", p: "¿Puedo pagar en la página?", claves: "pago pagar tarjeta transferencia debito credito efectivo medios de pago",
     r: "No. La página no cobra ni pide datos de tarjetas. El pago se coordina por WhatsApp cuando te confirmamos la disponibilidad y el precio, y ahí te indicamos los medios de pago. Si compras en la tienda, pagas allá." },
   { id: "disponibilidad", cat: "pedidos", p: "¿Cómo sé si una prenda está disponible?", claves: "stock disponible hay quedan agotado unidades existencias tienen",
-    r: "El catálogo muestra lo que vendemos, pero no las unidades en tiempo real, porque la tienda también vende en persona. Al enviar tu pedido te confirmamos por WhatsApp qué tallas y colores hay. Si algo no está, te ofrecemos otra opción o lo traemos a pedido." },
+    r: "El catálogo muestra lo que vendemos, pero no las unidades en tiempo real, porque la tienda también vende en persona. Al enviar tu pedido te confirmamos por WhatsApp qué tallas y colores hay. Si algo no está, te ofrecemos otra opción o lo buscamos con nuestros proveedores para conseguírtelo." },
   { id: "precios", cat: "pedidos", p: "¿Por qué no aparecen los precios?", claves: "precio precios valor cuanto cuesta cuanto vale",
     r: "Por ahora confirmamos los precios por WhatsApp, junto con la disponibilidad de tu talla y color. Siempre sabrás el precio total, con el envío si corresponde, antes de pagar." },
   { id: "cantidad", cat: "pedidos", p: "¿Cuántas unidades puedo pedir?", claves: "cantidad unidades cuantas maximo mas de veinte cambiar cantidad aumentar disminuir",
