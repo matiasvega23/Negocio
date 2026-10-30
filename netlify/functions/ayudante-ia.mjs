@@ -166,10 +166,10 @@ function revisar(datos, s) {
   // Regla de la marca: niños y lencería o ropa interior nunca en la misma respuesta. Única excepción: la ropa interior
   // de niños del catálogo (bóxer, calzones, petos y camisetas de niña o niño) cuando la persona la pide, siempre que
   // no se nombre ropa interior de adultos.
-  const sinBoxerNino = texto.replace(/(b(o|ó)xer(es)?|calz(o|ó)n(es)?|petos?|camisetas?(\s+panty)?)\s+((de|para)\s+(beb(e|é)s?|ni(ñ|n)(o|a|os|as))|juvenil(es)?)/gi, "");
+  const sinBoxerNino = texto.replace(/(b(o|ó)xer(es)?|calz(o|ó)n(es)?|petos?|camisetas?(\s+panty)?|ropa interior)((\s+[a-záéíóúñ]+){0,3})\s+((de|para)\s+(beb(e|é)s?|ni(ñ|n)(o|a|os|as))|juvenil(es)?)/gi, "");
   if (NINOS.test(texto) && LENCERIA.test(sinBoxerNino)) {
     filtro = "marca";
-    texto = `Para niñas y niños, además de la ropa del catálogo (poleras, shorts y conjuntos), en la tienda tenemos ${s.ninos.join(", ").replace(/, ([^,]*)$/, " y $1")}. Pregúntanos por tallas y colores por WhatsApp.`;
+    texto = `Para niñas y niños tenemos una sección aparte en el catálogo de la página: ballerinas, calcetas, artículos escolares, camisetas, ropa interior de niños y ropa de verano. En la tienda también hay ${s.ninos.join(", ").replace(/, ([^,]*)$/, " y $1")}. Pregúntanos por tallas y colores por WhatsApp.`;
     acciones = ["catalogo:ropa para niños", "tienda"];
   }
   if (!texto) { texto = "No tengo esa información. Te ayuda una persona del equipo por WhatsApp o llamada."; acciones = ["persona"]; }
