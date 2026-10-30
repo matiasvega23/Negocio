@@ -219,7 +219,9 @@ export default async (req, context) => {
   if ((visitantes[quien] || 0) >= topeVis) return json({ ia: false, motivo: "limite_visitante" });
 
   let s;
-  try { s = await conocimiento(new URL(req.url).origin); } catch (e) { return json({ ia: false, motivo: "error" }); }
+  // Fuera del sitio real, los errores traen un detalle técnico para poder corregirlos (sin datos personales).
+  const detalle = x => amb === "prod" ? {} : { detalle: String(x).slice(0, 200) };
+  try { s = await conocimiento(new URL(req.url).origin); } catch (e) { console.error("ayudante-ia datos", e); return json({ ia: false, motivo: "error", ...detalle("datos: " + e.message) }); }
 
   // Llamada a Claude (AI Gateway de Netlify o clave propia).
   const clave = env("ANTHROPIC_API_KEY"), base = (env("ANTHROPIC_BASE_URL") || "https://api.anthropic.com").replace(/\/$/, "");
@@ -240,14 +242,16 @@ export default async (req, context) => {
     cuerpo = await r.json().catch(() => null);
   } catch (e) {
     clearTimeout(reloj);
+    console.error("ayudante-ia llamada", e);
     await sumar(store, `dia/${fecha}`, 0, { errores: 1 });
-    return json({ ia: false, motivo: "error" });
+    return json({ ia: false, motivo: "error", ...detalle("llamada: " + e.message) });
   }
   clearTimeout(reloj);
   if (!r.ok || !cuerpo || !Array.isArray(cuerpo.content)) {
     await sumar(store, `dia/${fecha}`, 0, { errores: 1 });
+    console.error("ayudante-ia respuesta", r.status, cuerpo && cuerpo.error);
     if (r.status === 401 || r.status === 403) await alertar(vigia, req, "ia_sin_acceso", `El ayudante con IA no tiene acceso (error ${r.status}). Revisa en Netlify que AI Gateway esté activo o que la clave ANTHROPIC_API_KEY sea válida. El ayudante sigue respondiendo con sus reglas.`);
-    return json({ ia: false, motivo: "error" });
+    return json({ ia: false, motivo: "error", ...detalle(`proveedor ${r.status}: ${cuerpo && cuerpo.error ? JSON.stringify(cuerpo.error) : ""}`) });
   }
 
   // Costo de esta respuesta, en créditos de Netlify.
