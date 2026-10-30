@@ -149,6 +149,102 @@ const PRODUCTOS = [
   { id: "ropa-ninos", n: "Ropa para niños", para: ["ninos"], cat: "ninos", t: "verano", d: "Poleras, shorts y conjuntos. Pregunta por las tallas disponibles.", fotos: ["k-ninos"], k: "niño niña infantil" }
 ];
 
+/* =========================================================================
+   PRODUCTOS DE LA TIENDA POR MATERIAL (lista entregada por la familia el 29 de octubre de 2026)
+   Incluye prendas que aún no están en el catálogo de la página (no tienen foto). No lleva precios, tallas,
+   colores ni stock: eso se confirma por WhatsApp. Para agregar o quitar algo, se edita esta lista.
+   - "k": otras palabras con que la gente lo busca.
+   - "ninos: true": prenda para niñas o niños. Regla de la marca: va siempre aparte de la lencería y la
+     ropa interior de adultos (en textos, filtros y respuestas).
+   - "soloSiPiden: true": el ayudante solo la menciona si la persona la pide directamente.
+   ========================================================================= */
+const PRODUCTOS_TIENDA = [
+  { grupo: "Polar", items: [
+    { n: "Pantalones de polar", k: "pantalon buzo" },
+    { n: "Polerones de polar", k: "poleron" },
+    { n: "Pijamas de polar", k: "pijama piyama" },
+    { n: "Poleras de polar para hombre", k: "polera termica" },
+    { n: "Calzoncillos largos de polar", k: "calzoncillo largo termico primera capa" },
+    { n: "Cuellos de polar", k: "cuello bufanda" },
+    { n: "Camisas afraneladas de polar para hombre y para mujer", k: "camisa afranelada cuadrille leñadora" },
+    { n: "Camisas afraneladas de polar para niña", k: "camisa afranelada niña", ninos: true }
+  ] },
+  { grupo: "Algodón", items: [
+    { n: "Pijamas de algodón", k: "pijama piyama" },
+    { n: "Poleras de algodón", k: "polera" },
+    { n: "Calzas de algodón", k: "calza leggins" },
+    { n: "Calzoncillos largos de algodón", k: "calzoncillo largo" },
+    { n: "Calcetas de algodón", k: "calceta calcetin" },
+    { n: "Sostenes de algodón", k: "sosten brasier" },
+    { n: "Sostén maternal de algodón", k: "sosten maternal maternidad lactancia embarazada amamantar" },
+    { n: "Pantalones de buzo de algodón para señora y para hombre", k: "buzo pantalon jogger" },
+    { n: "Pantalones de buzo de colegio para niño y niña", k: "buzo colegio escolar uniforme deportivo", ninos: true },
+    { n: "Polerones de algodón", k: "poleron" },
+    { n: "Poleras de piqué de algodón", k: "polera pique" },
+    { n: "Poleras polo de algodón", k: "polera polo" }
+  ] },
+  { grupo: "Lycra", items: [
+    { n: "Calzones de lycra", k: "calzon laicra licra" },
+    { n: "Calzas de lycra", k: "calza leggins laicra licra deportiva" },
+    { n: "Sostén deportivo de lycra", k: "sosten deportivo top laicra licra" }
+  ] },
+  { grupo: "Nylon", items: [
+    { n: "Poleras de nylon", k: "polera nilon nailon" },
+    { n: "Pantalones de nylon para mujer", k: "pantalon nilon nailon" },
+    { n: "Calzones y colaless de nylon", k: "calzon colaless colales tanga nilon nailon" },
+    { n: "Vestidos de nylon", k: "vestido nilon nailon" }
+  ] },
+  { grupo: "Chiporro y corderito", items: [
+    { n: "Calcetas de chiporro", k: "calceta chiporro" },
+    { n: "Chalecas con chiporro para hombre y mujer", k: "chaleca chaleco chiporro" },
+    { n: "Polerones de corderito, peludos por dentro y por fuera", k: "poleron corderito peludo" }
+  ] },
+  { grupo: "Lana y lanilla", items: [
+    { n: "Gorros de lana", k: "gorro" },
+    { n: "Guantes de lana", k: "guante" },
+    { n: "Bufandas de lana", k: "bufanda" },
+    { n: "Chalecas y chombas de lana para hombre y mujer", k: "chaleca chomba chaleco sweater sueter" },
+    { n: "Pantalones de lanilla para mujer", k: "pantalon lanilla" }
+  ] },
+  { grupo: "Calcetas", items: [
+    { n: "Calcetas de cobre y bambú", k: "calceta cobre bambu" },
+    { n: "Calcetas para diabéticos", k: "calceta diabetico diabetes" },
+    { n: "Calcetas deportivas", k: "calceta deportiva" }
+  ] },
+  { grupo: "Pantys y medias", items: [
+    { n: "Pantys transparentes", k: "panty pantis medias transparente" },
+    { n: "Medias pantalón", k: "media pantalon panty" },
+    { n: "Pantys de bambú", k: "panty pantis bambu" },
+    { n: "Pantys de malla", k: "panty pantis malla rejilla" },
+    { n: "Pantys con diseños", k: "panty pantis diseño diseños" },
+    { n: "Pantys de pie", k: "panty pantis pie" },
+    { n: "Pantys de niña y de niño", k: "panty pantis niña niño", ninos: true },
+    { n: "Pantys de colegio", k: "panty pantis colegio escolar", ninos: true }
+  ] },
+  { grupo: "Pantuflas", items: [
+    { n: "Pantuflas de mujer y de hombre", k: "pantufla pantuflas chalas zapatillas casa" }
+  ] },
+  { grupo: "Ropa interior de hombre", items: [
+    { n: "Bóxer largo y corto para hombre", k: "boxer" },
+    { n: "Calzoncillos de hombre", k: "calzoncillo slip" }
+  ] },
+  { grupo: "Para niño", items: [
+    { n: "Bóxer de niño", k: "boxer niño", ninos: true, soloSiPiden: true }
+  ] }
+];
+// Lista de lo que hay por material, sin las prendas de niños (se usa en la pregunta frecuente de materiales).
+function textoMateriales() {
+  return PRODUCTOS_TIENDA.map(g => {
+    const its = g.items.filter(i => !i.ninos).map(i => i.n.charAt(0).toLowerCase() + i.n.slice(1));
+    return its.length ? `- **${g.grupo}:** ${its.join(", ")}.` : "";
+  }).filter(Boolean).join("\n");
+}
+// Lo que hay para niñas y niños (sin lo marcado "soloSiPiden").
+function textoNinos() {
+  const its = PRODUCTOS_TIENDA.flatMap(g => g.items).filter(i => i.ninos && !i.soloSiPiden).map(i => i.n.charAt(0).toLowerCase() + i.n.slice(1));
+  return its.join(", ").replace(/, ([^,]*)$/, " y $1");
+}
+
 // Preguntas frecuentes: se muestran en la sección "Preguntas frecuentes" y el ayudante virtual las usa para responder.
 // Formato de las respuestas: párrafos separados por una línea en blanco; líneas que empiezan con "- " son viñetas;
 // enlaces como [texto](destino). Destinos: #seccion, pagina.html#parte, https://..., tel:+569...,
@@ -156,7 +252,7 @@ const PRODUCTOS = [
 // {envoltorio} se reemplaza solo por las condiciones vigentes del envoltorio de regalo.
 // "claves" son palabras extra con las que el ayudante reconoce la pregunta.
 const CATEGORIAS_PREGUNTAS = [
-  ["pedidos", "Pedidos y compras"], ["envios", "Envíos y retiro"], ["tallas", "Tallas y cuidado"],
+  ["pedidos", "Pedidos y compras"], ["productos", "Productos y materiales"], ["envios", "Envíos y retiro"], ["tallas", "Tallas y cuidado"],
   ["cambios", "Cambios, devoluciones y garantía"], ["descuento", "Descuento de bienvenida"], ["regalos", "Regalos"],
   ["mayor", "Ventas por mayor"], ["pagina", "La tienda, la página y tus datos"]
 ];
@@ -177,6 +273,11 @@ const PREGUNTAS_FRECUENTES = [
     r: "En la tienda hay mucho más de lo que cabe en el catálogo y, si no lo tenemos, lo buscamos para ti. [Cuéntanos qué buscas](wsp:Hola Angie's Secret 👋 Estoy buscando: ) con la talla y el color." },
   { id: "whatsapp-no-abre", cat: "pedidos", p: "Toqué \"Enviar pedido\" y no se abrió WhatsApp", claves: "whatsapp no abre no se abre no funciona enviar no puedo enviar",
     r: "- Revisa que tengas WhatsApp instalado. En computador se abre WhatsApp Web.\n- Si el navegador bloqueó la ventana, permítela e inténtalo de nuevo.\n- En \"Ver mi pedido\" puedes tocar \"Copiar mi pedido\" y pegarlo en un chat con el +56 9 9570 9114.\n\nSi sigue sin funcionar, [escríbenos](wspc:Hola 👋 Tengo un problema para enviar mi pedido desde la página.) o [llámanos](tel:+56949376311)." },
+
+  { id: "materiales", cat: "productos", p: "¿Qué productos tienen y de qué materiales?", claves: "material materiales tela telas genero algodon polar lycra licra laicra nylon nailon nilon lana lanilla chiporro corderito bambu cobre",
+    r: "Esto es lo que hay en la tienda, por material (no todo está todavía en el catálogo de la página):\n\n{materiales}\n\nLas tallas, los colores y el precio de cada prenda te los confirmamos por [WhatsApp](wsp:Hola Angie's Secret 👋 Quería consultar por: )." },
+  { id: "ninos", cat: "productos", p: "¿Qué tienen para niñas y niños?", claves: "niños niñas niño niña infantil hijo hija colegio escolar",
+    r: "Además de la ropa para niños del catálogo (poleras, shorts y conjuntos), en la tienda tenemos {ninos}. Pregúntanos por tallas y colores por [WhatsApp](wsp:Hola Angie's Secret 👋 Busco para mi hijo o hija: )." },
 
   { id: "envios", cat: "envios", p: "¿Hacen envíos? ¿Cuánto cuestan?", claves: "envio envios despacho despachan regiones domicilio costo envio delivery",
     r: "Sí, enviamos a todo Chile. El envío tiene un costo adicional que depende de la comuna o región de destino: te lo informamos por WhatsApp, junto con el total, antes de que pagues. Si retiras en la tienda, no pagas envío." },
@@ -225,7 +326,7 @@ const PREGUNTAS_FRECUENTES = [
   { id: "datos", cat: "pagina", p: "¿Qué hacen con mis datos?", claves: "datos personales privacidad borrar mis datos informacion",
     r: "Solo pedimos datos si te registras para el descuento: los usamos para aplicarlo y, si lo aceptas, para enviarte promociones. No los vendemos ni los compartimos. La página además mide de forma anónima cómo se usa (sin tu nombre ni tu teléfono), y puedes desactivarlo. [Aviso de privacidad](privacidad.html)." },
   { id: "ayudante", cat: "pagina", p: "¿Quién responde el ayudante?", claves: "ayudante robot bot persona humano quien responde",
-    r: "Es un ayudante automático. Primero usa las respuestas preparadas por la tienda y, si no entiende tu pregunta, una inteligencia artificial (Claude, de Anthropic) que solo conoce lo que la tienda publica en esta página. No es una persona y puede equivocarse: los precios, el stock y tu pedido te los confirma la tienda por WhatsApp. Si no resuelve tu duda, te deriva por [WhatsApp al +56 9 4937 6311](wspc:Hola 👋 Vengo del ayudante de la página y necesito ayuda.) o a una [llamada](tel:+56949376311)." },
+    r: "Es un ayudante automático. Primero usa las respuestas preparadas por la tienda y, si no entiende tu pregunta, una inteligencia artificial (Claude, de Anthropic) que solo conoce lo que la tienda publica en esta página. No es una persona y puede equivocarse: los precios, el stock y tu pedido te los confirma la tienda por WhatsApp. Las respuestas con inteligencia artificial tienen un límite diario por persona; los botones y estas preguntas frecuentes no tienen límite. Si no resuelve tu duda, te deriva por [WhatsApp al +56 9 4937 6311](wspc:Hola 👋 Vengo del ayudante de la página y necesito ayuda.) o a una [llamada](tel:+56949376311)." },
   { id: "pagina-falla", cat: "pagina", p: "La página no funciona bien, ¿qué hago?", claves: "pagina falla lenta no carga error boton fotos no se ven pantalla",
     r: "- Recarga la página.\n- Revisa tu conexión a internet.\n- Actualiza tu navegador o prueba con otro (Chrome, Safari o Firefox).\n\nSi sigue fallando, [cuéntanos qué pasó](wspc:Hola 👋 La página de Angie's Secret me falla: ) y lo revisamos." }
 ];

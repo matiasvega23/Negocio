@@ -202,6 +202,28 @@ function buscarInteligente(consulta) {
   return r;
 }
 
+// Prendas que hay en la tienda (PRODUCTOS_TIENDA de js/datos.js) según lo que escribe la persona, aunque no estén
+// en el catálogo de la página. Regla de la marca: si busca para niñas o niños, solo prendas de niños; si no, nunca.
+const AUDIENCIA = new Set(["hombre", "hombres", "mujer", "mujeres", "senora", "senoras", "dama", "damas", "varon", "caballero", "nino", "nina", "ninos", "ninas", "hijo", "hija", "guagua"]);
+function enTienda(texto) {
+  if (typeof PRODUCTOS_TIENDA === "undefined") return [];
+  const n = norm(texto);
+  const palabras = [...new Set(n.split(/[^a-z]+/).filter(w => w.length > 2 && !PARADAS.has(w) && !AUDIENCIA.has(w)).map(fon))];
+  if (!palabras.length) return [];
+  const paraNinos = /\b(nin[oa]s?|hij[oa]s?|colegio|escolar|infantil|guaguas?)\b/.test(n);
+  const pideBoxer = /\b(boxer|calzoncillos?)\b/.test(n);
+  const res = [];
+  for (const g of PRODUCTOS_TIENDA) for (const i of g.items) {
+    if (!!i.ninos !== paraNinos || (i.soloSiPiden && !pideBoxer)) continue;
+    const ws = new Set(norm(`${i.n} ${i.k || ""}`).split(/[^a-z]+/).filter(w => w.length > 2).map(fon));
+    const coincide = palabras.filter(w => ws.has(w)).length;
+    if (coincide) res.push({ n: i.n, grupo: g.grupo, coincide });
+  }
+  const max = Math.max(0, ...res.map(x => x.coincide));
+  return res.filter(x => x.coincide === max);
+}
+const listaTienda = its => its.map(x => x.n.charAt(0).toLowerCase() + x.n.slice(1)).join(", ").replace(/, ([^,]*)$/, " y $1");
+
 /* ---------- Catálogo ---------- */
 const params = new URLSearchParams(location.search);
 const temporadaAuto = m => (m >= 4 && m <= 8) ? "invierno" : (m >= 10 || m <= 2) ? "verano" : "todo";
@@ -261,7 +283,8 @@ function pintar() {
   }
   if (!lista.length) {
     const busca = estado.q ? `«${esc(estado.q)}»` : "eso";
-    html = `<div class="vacio"><p>No encontramos ${busca} con estos filtros. Prueba con “Todo” en temporada. En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.</p>
+    const tienda = estado.q ? enTienda(estado.q).slice(0, 6) : [];
+    html = `<div class="vacio"><p>No encontramos ${busca} con estos filtros. Prueba con “Todo” en temporada. ${tienda.length ? `<strong>En la tienda sí tenemos ${esc(listaTienda(tienda))}</strong>, aunque todavía no están en la página: pídelas por WhatsApp.` : "En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido."}</p>
       <a class="boton boton-wsp" href="${wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${estado.q || ""}`)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>${estado.q ? `Pedir «${esc(estado.q)}» por WhatsApp` : "Preguntar por WhatsApp"}</a></div>`;
   }
   $("#listado").innerHTML = html;
@@ -307,7 +330,8 @@ function pintarSugerencias(q) {
   const entendimos = r.entendido.length ? `<p class="entendimos">Entendimos: <strong>${r.entendido.map(esc).join(" · ")}</strong></p>` : "";
   const regalo = r.regalo ? `<p class="letra-chica">¿Es para regalo? <a href="#regalo">Arma tu regalo</a>. ${esc(textoEnvoltorio("dato"))}</p>` : "";
   if (!r.lista.length) {
-    panelPortada.innerHTML = `${entendimos}<p class="sin-resultado">No encontramos «${esc(q)}» en el catálogo de la página. En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.</p>
+    const tienda = enTienda(q).slice(0, 6);
+    panelPortada.innerHTML = `${entendimos}<p class="sin-resultado">${tienda.length ? `«${esc(q)}» todavía no está en el catálogo de la página, pero <strong>en la tienda sí tenemos ${esc(listaTienda(tienda))}</strong>. Pídelo por WhatsApp y te confirmamos tallas, colores y precio.` : `No encontramos «${esc(q)}» en el catálogo de la página. En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido.`}</p>
       <div class="acciones-sugerencia"><a class="boton boton-wsp" href="${pedirPorWhatsApp(q)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>Pedir «${esc(q)}» por WhatsApp</a><a class="boton-texto" href="#encargo">Ver pedidos especiales</a></div>`;
   } else {
     const n = r.lista.length;
@@ -916,7 +940,10 @@ function formatearRespuesta(texto) {
     const m = parte.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
     return m ? destinoEnlace(m[2], m[1]) : esc(parte).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   }).join("");
-  return String(texto).replace("{envoltorio}", textoEnvoltorio("faq")).split(/\n\n+/).map(bloque => {
+  const t = String(texto).replace("{envoltorio}", textoEnvoltorio("faq"))
+    .replace("{materiales}", typeof textoMateriales === "function" ? textoMateriales() : "")
+    .replace("{ninos}", typeof textoNinos === "function" ? textoNinos() : "");
+  return t.split(/\n\n+/).map(bloque => {
     const filas = bloque.split("\n");
     if (filas.every(f => f.startsWith("- "))) return `<ul>${filas.map(f => `<li>${linea(f.slice(2))}</li>`).join("")}</ul>`;
     return `<p>${filas.map(linea).join("<br>")}</p>`;

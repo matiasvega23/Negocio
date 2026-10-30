@@ -54,10 +54,10 @@ export default async (req, context) => {
   // Gasto del ayudante con IA (créditos estimados de Netlify en el período de cobro que va del 26 al 25).
   const ia = getStore("ia"), per = periodoCobro(fecha);
   const [iaMes, iaDia] = await Promise.all([ia.get(`periodo/${per}`, { type: "json" }), ia.get(`dia/${fecha}`, { type: "json" })]);
-  const topeMes = Number(process.env.IA_TOPE_CREDITOS_MES || 25);
+  const topeMes = Number(process.env.IA_TOPE_CREDITOS_MES || 20);
   const datos = {
     ok: true, ambiente: amb, revisado: `${fecha} ${hora}`, publicacion, version, archivos, cabeceras,
-    ia: { activa: (process.env.IA_AYUDANTE || "").toLowerCase() !== "no", periodo_desde: `${per}-26`, creditos_periodo: iaMes ? Math.round(iaMes.creditos * 100) / 100 : 0, tope_periodo: topeMes, mensajes_periodo: iaMes ? iaMes.mensajes : 0, respuestas_filtradas: iaMes ? iaMes.filtradas || 0 : 0, errores_hoy: iaDia ? iaDia.errores || 0 : 0 },
+    ia: { activa: (process.env.IA_AYUDANTE || "").toLowerCase() !== "no", periodo_desde: `${per}-26`, creditos_periodo: iaMes ? Math.round(iaMes.creditos * 100) / 100 : 0, tope_periodo: topeMes, mensajes_periodo: iaMes ? iaMes.mensajes : 0, respuestas_filtradas: iaMes ? iaMes.filtradas || 0 : 0, errores_hoy: iaDia ? iaDia.errores || 0 : 0, respuestas_guardadas_hoy: iaDia ? iaDia.memoria || 0 : 0, limite_por_persona_dia: Number(process.env.IA_TOPE_MENSAJES_VISITANTE || 5) },
     hoy: { sondeos_de_robots: sondeos, avisos_csp: csp, textos_con_codigo: inyeccion, alertas_enviadas: alertas, registros_del_dia: altas >= 40 ? "alto" : "normal" }
   };
   await store.setJSON(`estado-cache/${amb}`, { t: Date.now(), publicacion, datos });

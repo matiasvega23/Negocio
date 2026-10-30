@@ -527,3 +527,4 @@ body.ayudante-abierto .ayudante-boton { display: none; }
 .ayudante-msg .nota-ia { margin-top: 6px; font-size: .8125rem; color: var(--suave); }
 .ayudante-nota a { color: inherit; }
 .ayudante-escribir input:disabled { background: var(--rubor); }
+.ayudante-msg .nota-ia.aviso-limite { padding: 8px 10px; border-radius: 10px; background: var(--rubor); color: var(--noche); font-size: .875rem; }
