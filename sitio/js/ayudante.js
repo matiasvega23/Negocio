@@ -155,7 +155,10 @@
   /* ---------- Entender lo que escribe la persona ---------- */
   function puntajeTemas(palabras) {
     const fs = palabras.map(fon);
-    return TEMAS.map(t => ({ id: t.id, n: fs.filter(f => t.f.has(f) || (f.length >= 7 && [...t.f].some(x => Math.abs(x.length - f.length) <= 1 && distancia(f, x) <= 1))).length }))
+    // Una palabra bien escrita del catálogo ("maternal") no se corrige hacia un tema parecido ("material").
+    if (!indice) crearIndice();
+    const parecida = f => f.length >= 7 && !indice.vocab.has(f);
+    return TEMAS.map(t => ({ id: t.id, n: fs.filter(f => t.f.has(f) || (parecida(f) && [...t.f].some(x => Math.abs(x.length - f.length) <= 1 && distancia(f, x) <= 1))).length }))
       .filter(x => x.n).sort((a, b) => b.n - a.n || PRIORIDAD.indexOf(a.id) - PRIORIDAD.indexOf(b.id));
   }
   function mejorPregunta(palabras) {
@@ -285,7 +288,11 @@
       else if (tipo === "regalo") b.push({ t: "Arma tu regalo", a: "ir:#regalo" });
       else if (tipo === "pedido") b.push({ t: "Ver mi pedido", a: "pedido" });
       else if (tipo === "producto") { const p = PRODUCTOS.find(x => x.id === valor); if (p) b.push({ t: `Ver ${p.n}`, a: `abrir:${p.id}` }); }
-      else if (tipo === "catalogo" && valor) b.push({ t: `Ver «${valor}» en el catálogo`, a: `catalogo:${valor}` });
+      else if (tipo === "catalogo" && valor) {
+        // Si la IA nombró un modelo exacto ("Sostén de encaje 8124"), se abre ese modelo; si no, se busca en el catálogo.
+        const exacto = PRODUCTOS.find(p => norm(p.n) === norm(valor));
+        b.push(exacto ? { t: `Ver ${exacto.n}`, a: `abrir:${exacto.id}` } : { t: `Ver «${valor}» en el catálogo`, a: `catalogo:${valor}` });
+      }
       else if (tipo === "faq") { const q = faq(valor); if (q) b.push({ t: q.p, a: `faq:${q.id}` }); }
     }
     b.push({ t: "Otra pregunta", a: "menu" });

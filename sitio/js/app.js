@@ -6,6 +6,8 @@
    ========================================================================= */
 const IMGS = window.__IMGS__ || {};
 const foto = k => IMGS[k] || `img/${k}.webp`;
+// Secciones de ropa interior: llevan el aviso del derecho a retracto por higiene.
+const CATS_INTERIOR = new Set(["sostenes", "calzones", "fajas", "interior-hombre"]);
 const afiche = id => IMGS["a:" + id] || `fichas/${id}.webp`;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -73,8 +75,8 @@ const PUBLICO = {
 };
 // Grupos de palabras que significan lo mismo. La primera parte es cómo se lo explicamos a la persona.
 const GRUPOS = [
-  ["sostenes", "sosten sostenes brasier brasieres bracier brassier bra bras sujetador sujetadores corpino corpinos peto"],
-  ["calzones", "calzon calzones bombacha bombachas tanga tangas colales colaless cachetero cacheteros bikini"],
+  ["sostenes", "sosten sostenes brasier brasieres bracier brassier bra bras sujetador sujetadores corpino corpinos peto petos"],
+  ["calzones", "calzon calzones bombacha bombachas tanga tangas colales colaless cachetero cacheteros bikini pantaleta pantaletas culotte culottes sacapierna"],
   ["bóxer y slip", "boxer boxers slip slips calzoncillo calzoncillos"],
   ["fajas", "faja fajas reductor reductora modelador modeladora cinturilla cinturillas body bodys"],
   ["pijamas", "pijama pijamas piyama piyamas pyjama camison camisones bata batas babydoll dormir"],
@@ -85,11 +87,13 @@ const GRUPOS = [
   ["vestidos", "vestido vestidos solera soleras tunica tunicas enterito enteritos jumpsuit kimono"],
   ["chalecos, sweaters y polerones", "chaleco chalecos sweater sweaters sueter sueters cardigan poleron polerones hoodie chaqueta"],
   ["polar y térmico", "polar polares chiporro termico termica termicos termicas abrigado abrigada"],
-  ["calcetas", "calceta calcetas calcetin calcetines soquete soquetes"],
-  ["pantys", "panty pantys medias"],
+  ["calcetas", "calceta calcetas calcetin calcetines soquete soquetes tobillera tobilleras talonera taloneras bucanera bucaneras"],
+  ["pantys", "panty pantys medias ballerina ballerinas"],
   ["gorros", "gorro gorros beanie"],
   ["bufandas", "bufanda bufandas"],
   ["banano", "banano bananos canguro rinonera koala"],
+  ["pañuelos", "panuelo panuelos"],
+  ["pecheras", "pechera pecheras delantal delantales"],
   // "Lencería" abarca sostenes, calzones, fajas y conjuntos (las palabras exactas se resuelven antes en su propio grupo).
   ["lencería", "lenceria encaje sexy sosten sostenes calzon calzones faja fajas"],
   ["ropa interior", "interior"]
@@ -166,7 +170,7 @@ function buscarInteligente(consulta) {
   for (const w of contenido) {
     const r = entenderPalabra(w);
     if (!r) { desconocidas.push(w); continue; }
-    usadas.push(r);
+    usadas.push({ ...r, f: fon(w) });
     entendido.push(r.tipo === "igual" ? r.etiqueta : `«${w}» = ${r.etiqueta}`);
   }
   let lista;
@@ -182,6 +186,8 @@ function buscarInteligente(consulta) {
     const pesos = indice.productos.map(({ p, campos }) => ({ p, w: usadas.map(u => {
       let mejor = 0;
       for (const [set, peso] of campos) if (peso > mejor && [...u.terminos].some(t => set.has(t))) mejor = peso;
+      // La palabra tal como se escribió ("colaless", "ballerina") pesa un poco más que sus sinónimos.
+      if (mejor && (campos[0][0].has(u.f) || campos[1][0].has(u.f))) mejor += 0.5;
       return mejor;
     }) }));
     // Si la persona nombró un tipo de prenda, solo cuentan las prendas de ese tipo (por nombre o palabra clave;
@@ -275,10 +281,12 @@ function pintar() {
   document.querySelectorAll("[data-para]").forEach(b => b.setAttribute("aria-pressed", b.dataset.para === estado.para));
   const lista = PRODUCTOS.filter(visible);
   let html = "";
+  const secciones = [];
   for (const [cat, nombre] of CATEGORIAS) {
     const items = lista.filter(p => p.cat === cat)
       .sort((a, b) => (a.t === "todo") - (b.t === "todo"));
     if (!items.length) continue;
+    secciones.push(`<a class="chip" href="#g-${cat}">${esc(nombre)} <small>${items.length}</small></a>`);
     html += `<section class="grupo" aria-labelledby="g-${cat}"><h3 id="g-${cat}">${nombre}<small>${items.length} ${items.length === 1 ? "producto" : "productos"}</small></h3><ul class="productos">${items.map(tarjeta).join("")}</ul></section>`;
   }
   if (!lista.length) {
@@ -287,6 +295,8 @@ function pintar() {
     html = `<div class="vacio"><p>No encontramos ${busca} con estos filtros. Prueba con “Todo” en temporada. ${tienda.length ? `<strong>En la tienda sí tenemos ${esc(listaTienda(tienda))}</strong>, aunque todavía no están en la página: pídelas por WhatsApp.` : "En la tienda hay mucho más y, si no lo tenemos, lo traemos a pedido."}</p>
       <a class="boton boton-wsp" href="${wspUrl(`Hola Angie's Secret 👋 Estoy buscando: ${estado.q || ""}`)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wsp"/></svg>${estado.q ? `Pedir «${esc(estado.q)}» por WhatsApp` : "Preguntar por WhatsApp"}</a></div>`;
   }
+  // Con varias secciones, un índice para saltar a la que interesa (el catálogo es largo).
+  if (secciones.length > 2) html = `<nav class="saltos" aria-label="Secciones del catálogo">${secciones.join("")}</nav>` + html;
   $("#listado").innerHTML = html;
   const t = estado.temporada === "todo" ? "de todas las temporadas" : `${NOMBRE_T[estado.temporada]} y para todo el año`;
   const entendido = estado.q ? buscarInteligente(estado.q).entendido : [];
@@ -362,7 +372,7 @@ function abrirProducto(id) {
   const tallas = p.tallas || null;
   $("#ficha").innerHTML = `
     <div class="galeria">
-      <div class="galeria-marco"><div class="galeria-principal" id="principal"><img id="img-principal" src="${imagenes[0].src}" alt="${esc(p.n)}" draggable="false"></div>${imagenes.length > 1 ? `<button type="button" class="galeria-flecha anterior" data-paso="-1" aria-label="Foto anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-izq"/></svg></button><button type="button" class="galeria-flecha siguiente" data-paso="1" aria-label="Foto siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-der"/></svg></button><span class="galeria-contador" id="galeria-contador" aria-hidden="true">1 / ${imagenes.length}</span>` : ""}<button type="button" class="boton boton-borde boton-chico ampliar" id="ampliar" hidden>Ampliar</button></div>
+      <div class="galeria-marco"><div class="galeria-principal${p.modelo ? " entera" : ""}" id="principal"><img id="img-principal" src="${imagenes[0].src}" alt="${esc(p.n)}" draggable="false"></div>${imagenes.length > 1 ? `<button type="button" class="galeria-flecha anterior" data-paso="-1" aria-label="Foto anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-izq"/></svg></button><button type="button" class="galeria-flecha siguiente" data-paso="1" aria-label="Foto siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-der"/></svg></button><span class="galeria-contador" id="galeria-contador" aria-hidden="true">1 / ${imagenes.length}</span>` : ""}<button type="button" class="boton boton-borde boton-chico ampliar" id="ampliar" hidden>Ampliar</button></div>
       ${imagenes.length > 1 ? `<div class="miniaturas" role="group" aria-label="Fotos">${imagenes.map((im, i) => `<button type="button" data-i="${i}" aria-current="${i === 0}" aria-label="${im.tipo === "afiche" ? "Afiche con detalles" : "Foto " + (i + 1)}"><img src="${im.src}" alt="" loading="lazy">${im.tipo === "afiche" ? "<small>Afiche</small>" : ""}</button>`).join("")}</div>` : ""}
     </div>
     <div class="ficha-info">
@@ -384,7 +394,7 @@ function abrirProducto(id) {
           <button type="button" class="boton-texto compartir" id="compartir"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:1.1em;height:1.1em;vertical-align:-3px"><use href="#i-compartir"/></svg> Compartir este producto</button>
         </div>
         <p class="letra-chica">Te confirmamos disponibilidad y precio por WhatsApp.</p>
-        ${p.cat === "interior" ? `<p class="aviso-legal"><strong>Derecho a retracto:</strong> por higiene, la ropa interior no tiene derecho a retracto si se abrió o retiró su sello o envase de seguridad. <a href="terminos.html#cambios">Más información</a></p>` : ""}
+        ${CATS_INTERIOR.has(p.cat) ? `<p class="aviso-legal"><strong>Derecho a retracto:</strong> por higiene, la ropa interior no tiene derecho a retracto si se abrió o retiró su sello o envase de seguridad. <a href="terminos.html#cambios">Más información</a></p>` : ""}
       </form>
     </div>`;
   const f = $("#form-producto");
@@ -793,7 +803,7 @@ $("#regalo-enviar").addEventListener("click", () => {
 /* ---------- Guía de tallas ---------- */
 let tallasDe = null;
 function usaGuiaTallas(p) {
-  return p.cat !== "accesorios" && p.id !== "pantys" && !(p.tallas && p.tallas.length === 1) && !p.para.every(x => x === "ninos");
+  return !["accesorios", "calcetas"].includes(p.cat) && p.id !== "pantys" && !(p.tallas && p.tallas.length === 1) && !p.para.every(x => x === "ninos");
 }
 function abrirGuiaTallas(id) {
   tallasDe = PRODUCTOS.find(x => x.id === id) || null;
