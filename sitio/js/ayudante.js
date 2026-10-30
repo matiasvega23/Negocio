@@ -179,7 +179,7 @@
     const tienda = enTienda(texto).slice(0, 6);
     // Si el catálogo solo coincidió por una palabra suelta (color, material) y la tienda tiene la prenda, se muestra la tienda.
     if (tienda.length && (!r.lista.length || !(r.prenda || r.publico))) {
-      decir(`<p>«${esc(texto)}» todavía no está en el catálogo de la página, pero <strong>en la tienda sí tenemos ${esc(listaTienda(tienda))}</strong>.</p><p>Te confirmamos tallas, colores y precio por WhatsApp.</p>`, [
+      decir(`<p><strong>En la tienda tenemos ${esc(listaTienda(tienda))}</strong>. No todo está publicado en el catálogo de la página: te confirmamos tallas, colores y precio por WhatsApp.</p>`, [
         { t: "Preguntar si hay", href: wspUrl(`Hola Angie's Secret 👋 ¿Tienen disponible: ${texto}?`), externo: true, wsp: true, canal: "wsp_tienda" }, ...masAyuda]);
       return;
     }
@@ -366,7 +366,7 @@
   document.addEventListener("click", e => { if (e.target.closest("[data-abrir-ayudante]")) { e.preventDefault(); panel.hidden ? abrir() : cerrar(); } });
   $("#ayudante-cerrar").addEventListener("click", cerrar);
   panel.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(); });
-  form.addEventListener("submit", e => { e.preventDefault(); const t = entrada.value; entrada.value = ""; responder(t.slice(0, 200)); });
+  form.addEventListener("submit", e => { e.preventDefault(); if (entrada.disabled) return; const t = entrada.value; entrada.value = ""; responder(t.slice(0, 200)); });
   mensajes.addEventListener("click", e => {
     const d = e.target.closest("[data-derivar]");
     if (d && d.dataset.derivar) medir("ayudante_derivar", { canal: d.dataset.derivar, tema: ultimoTema });

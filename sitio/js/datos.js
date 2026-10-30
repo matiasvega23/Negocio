@@ -174,7 +174,7 @@ const PRODUCTOS_TIENDA = [
     { n: "Poleras de algodón", k: "polera" },
     { n: "Calzas de algodón", k: "calza leggins" },
     { n: "Calzoncillos largos de algodón", k: "calzoncillo largo" },
-    { n: "Calcetas de algodón", k: "calceta calcetin" },
+    { n: "Calcetas de algodón", k: "calceta calcetin pies" },
     { n: "Sostenes de algodón", k: "sosten brasier" },
     { n: "Sostén maternal de algodón", k: "sosten maternal maternidad lactancia embarazada amamantar" },
     { n: "Pantalones de buzo de algodón para señora y para hombre", k: "buzo pantalon jogger" },
@@ -195,21 +195,21 @@ const PRODUCTOS_TIENDA = [
     { n: "Vestidos de nylon", k: "vestido nilon nailon" }
   ] },
   { grupo: "Chiporro y corderito", items: [
-    { n: "Calcetas de chiporro", k: "calceta chiporro" },
+    { n: "Calcetas de chiporro", k: "calceta chiporro pies" },
     { n: "Chalecas con chiporro para hombre y mujer", k: "chaleca chaleco chiporro" },
     { n: "Polerones de corderito, peludos por dentro y por fuera", k: "poleron corderito peludo" }
   ] },
   { grupo: "Lana y lanilla", items: [
-    { n: "Gorros de lana", k: "gorro" },
-    { n: "Guantes de lana", k: "guante" },
-    { n: "Bufandas de lana", k: "bufanda" },
+    { n: "Gorros de lana", k: "gorro cabeza orejas" },
+    { n: "Guantes de lana", k: "guante manos" },
+    { n: "Bufandas de lana", k: "bufanda cuello" },
     { n: "Chalecas y chombas de lana para hombre y mujer", k: "chaleca chomba chaleco sweater sueter" },
     { n: "Pantalones de lanilla para mujer", k: "pantalon lanilla" }
   ] },
   { grupo: "Calcetas", items: [
-    { n: "Calcetas de cobre y bambú", k: "calceta cobre bambu" },
-    { n: "Calcetas para diabéticos", k: "calceta diabetico diabetes" },
-    { n: "Calcetas deportivas", k: "calceta deportiva" }
+    { n: "Calcetas de cobre y bambú", k: "calceta cobre bambu pies" },
+    { n: "Calcetas para diabéticos", k: "calceta diabetico diabetes pies" },
+    { n: "Calcetas deportivas", k: "calceta deportiva pies" }
   ] },
   { grupo: "Pantys y medias", items: [
     { n: "Pantys transparentes", k: "panty pantis medias transparente" },
@@ -222,7 +222,7 @@ const PRODUCTOS_TIENDA = [
     { n: "Pantys de colegio", k: "panty pantis colegio escolar", ninos: true }
   ] },
   { grupo: "Pantuflas", items: [
-    { n: "Pantuflas de mujer y de hombre", k: "pantufla pantuflas chalas zapatillas casa" }
+    { n: "Pantuflas de mujer y de hombre", k: "pantufla pantuflas chalas zapatillas casa pies" }
   ] },
   { grupo: "Ropa interior de hombre", items: [
     { n: "Bóxer largo y corto para hombre", k: "boxer" },
