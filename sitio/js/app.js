@@ -83,7 +83,6 @@ const GRUPOS = [
   ["fajas", "faja fajas reductor reductora modelador modeladora cinturilla cinturillas body bodys"],
   ["pijamas", "pijama pijamas piyama piyamas pyjama camison camisones bata batas babydoll dormir"],
   ["calzas", "calza calzas leggins leggings licra lycra"],
-  ["shorts y bermudas", "short shorts bermuda bermudas"],
   ["pantalones y buzos", "pantalon pantalones buzo buzos jogger joggers jeans cargo palazzo"],
   ["poleras", "polera poleras remera remeras camiseta camisetas playera playeras beatle"],
   ["blusas", "blusa blusas"],

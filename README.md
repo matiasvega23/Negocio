@@ -110,7 +110,7 @@ Lo que se ajustó en el sitio:
 - Avisos: el de Navidad suma "regalos para ella, para él y para el amigo secreto" con las 3 condiciones del envoltorio, y entre el 26 de diciembre y el 19 de enero hay un aviso de verano que lleva al catálogo.
 - "Arma tu regalo": más ideas para él (bóxer, slip y calcetines).
 - Pregunta frecuente nueva: horario del 24 y el 31 de diciembre (el asistente la usa).
-- Buscador: "short", "bermuda" y palabras como "fresco", "liviano" o "calor" encuentran la ropa de verano.
+- Buscador: "bermuda" y palabras como "fresco", "liviano" o "calor" encuentran la ropa de verano.
 - En celulares de 360 px o menos, la cabecera y los botones largos ya no hacen mover la página hacia el lado.
 
 ## Reglas de la marca
