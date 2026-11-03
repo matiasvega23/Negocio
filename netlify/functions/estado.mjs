@@ -10,7 +10,8 @@ const ARCHIVOS = ["index.html", "js/app.js", "js/datos.js", "js/efectos.js", "js
 // Netlify reescribe al publicar las etiquetas <form> (formularios) y los enlaces que terminan en .html. Por eso las
 // páginas enlazan sin ".html" (/privacidad, /terminos) y la huella de los .html se calcula sin el contenido de <form ...>.
 // Todo lo demás (textos, enlaces, scripts, estilos) debe ser idéntico. herramientas/huellas.py calcula lo mismo.
-const normalizar = t => t.replace(/<form\b[^>]*>/gi, "<form>");
+// En el sitio real Netlify agrega además un comentario "This site is hosted on Netlify..." en el <head>: también se quita.
+const normalizar = t => t.replace(/<!-- This site is hosted on Netlify[\s\S]*?-->\n?/g, "").replace(/<form\b[^>]*>/gi, "<form>");
 async function huella(texto) {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("").slice(0, 16);
