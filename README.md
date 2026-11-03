@@ -104,6 +104,15 @@ Lo que se ajustó en el sitio:
 - Sin cantidades a la vista del cliente: las secciones, el resumen, la portada, el ayudante y la IA no dicen cuántas prendas hay.
 - Lo que escribe la tienda (ayudante, IA, mensajes) sigue sin juntar ropa interior de adultos con niños: el ayudante muestra un solo grupo y ofrece "Ver todas las opciones" en el catálogo.
 
+## Lote de noviembre (versión 4.13)
+
+- Letra más grande: botón "A+" en la portada. Agranda el contenido y las ventanas (no la cabecera ni el asistente) y se recuerda en el navegador. En pantallas de 340 px o menos agranda menos, para que nada se salga.
+- Avisos: el de Navidad suma "regalos para ella, para él y para el amigo secreto" con las 3 condiciones del envoltorio, y entre el 26 de diciembre y el 19 de enero hay un aviso de verano que lleva al catálogo.
+- "Arma tu regalo": más ideas para él (bóxer, slip y calcetines).
+- Pregunta frecuente nueva: horario del 24 y el 31 de diciembre (el asistente la usa).
+- Buscador: "short", "bermuda" y palabras como "fresco", "liviano" o "calor" encuentran la ropa de verano.
+- En celulares de 360 px o menos, la cabecera y los botones largos ya no hacen mover la página hacia el lado.
+
 ## Reglas de la marca
 
 - Nunca juntar lencería o ropa interior con niños en un mismo texto o imagen. Excepción decidida el 30 de octubre de 2026: la búsqueda y las secciones de ropa interior de hombre y de camisetas muestran también las prendas de niños, siempre en su propio bloque y nunca con lencería.
@@ -113,4 +122,4 @@ Lo que se ajustó en el sitio:
 
 ## Historial de versiones
 
-Cada versión es un cambio con su nombre en el historial ("Versión 2" a "Versión 4.10"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic, sin gastar créditos.
+Cada versión es un cambio con su nombre en el historial ("Versión 2" a "Versión 4.13"), así que se puede volver atrás si algo falla. En Netlify, la pestaña Deploys también permite volver a una publicación anterior con un clic, sin gastar créditos.

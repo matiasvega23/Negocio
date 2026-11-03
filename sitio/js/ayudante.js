@@ -31,7 +31,7 @@
     ["pago", "pago pagar pagos tarjeta transferencia debito credito efectivo cuotas"],
     ["tallas", "talla tallas medida medidas medirme copa calce"],
     ["cambios", "cambio cambios cambiar devolver devolucion garantia falla fallada defecto defectuosa retracto arrepenti arrepentirme rota"],
-    ["horario", "horario horarios abren abierto abierta cierran cerrado direccion ubicacion llegar local"],
+    ["horario", "horario horarios abren abierto abierta cierran cerrado atienden direccion ubicacion llegar local nochebuena"],
     ["descuento", "descuento bienvenida registro registrarme registre registrada codigo promocion oferta"],
     ["regalo", "regalo regalos regalar envolver envoltorio envuelto"],
     ["pedido", "pedido pedidos envie mande enviado equivoque cancelar anular responden contestan respuesta modificar whatsapp wsp wasap guasap"],
@@ -110,9 +110,11 @@
       decir(respuesta("garantia") + respuesta("retracto"), [{ t: "Cambio por talla o color", a: "faq:cambios" },
         { t: "Tengo una prenda con falla", href: wspConsultas("Hola 👋 Compré en Angie's Secret una prenda con falla y quiero usar la garantía. Les envío una foto y mi boleta."), externo: true, wsp: true, canal: "wsp_coordinacion" }, ...masAyuda]);
     },
-    horario() {
+    horario(texto) {
       const estadoAhora = `${$("#letrero-estado").textContent}: ${$("#letrero-detalle").textContent}.`;
-      decir(`<p><strong>${esc(estadoAhora)}</strong></p>${respuesta("horario")}`, masAyuda);
+      // "¿Abren el 24 de diciembre?", "¿atienden el 31?": primero la respuesta de fin de año.
+      const finDeAno = /\b(24|31)\b|diciembre|nochebuena|ano nuevo|fin de ano/.test(norm(texto || "")) && faq("fin-de-ano");
+      decir(`<p><strong>${esc(estadoAhora)}</strong></p>${finDeAno ? respuesta("fin-de-ano") : ""}${respuesta("horario")}`, masAyuda);
     },
     descuento() {
       if (registro && registroVigente()) {

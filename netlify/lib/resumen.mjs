@@ -10,7 +10,7 @@ export function resumirLotes(lotes) {
     lotes: lotes.length, dispositivos: {}, fuentes: {}, paginas: {}, horas: {}, productos: {}, agregados: {},
     pedidos: { abiertos: 0, enviados: 0, prendas: 0, unidades: 0, con_envio: 0, con_regalo: 0, con_descuento: 0, recuperados: 0 },
     regalos_enviados: 0, wsp: {}, busquedas: {}, sin_resultado: {}, ayudante: { abiertos: 0, temas: {}, derivaciones: {} },
-    faq: {}, errores: {}, registros: { ok: 0, fallidos: 0 }, tallas: 0, mayor: 0, textos_con_codigo: 0
+    faq: {}, errores: {}, registros: { ok: 0, fallidos: 0 }, tallas: 0, mayor: 0, letra_grande: 0, textos_con_codigo: 0
   };
   const embudo = { producto: new Set(), agregar: new Set(), enviar: new Set() };
   for (const l of lotes) {
@@ -39,6 +39,7 @@ export function resumirLotes(lotes) {
         case "error_js": sumar(r.errores, x.m); break;
         case "tallas": r.tallas++; break;
         case "mayor": r.mayor++; break;
+        case "letra": if (x.grande) r.letra_grande++; break;
         case "inyeccion": r.textos_con_codigo++; break;
       }
     }
@@ -65,7 +66,7 @@ export function combinar(dias) {
     for (const k of SUMABLES) for (const [a, n] of Object.entries(r[k] || {})) sumar(t[k], a, n);
     for (const k of Object.keys(t.pedidos)) t.pedidos[k] += (r.pedidos || {})[k] || 0;
     for (const k of Object.keys(t.embudo)) t.embudo[k] += (r.embudo || {})[k] || 0;
-    t.regalos_enviados += r.regalos_enviados || 0; t.tallas += r.tallas || 0; t.mayor += r.mayor || 0; t.textos_con_codigo += r.textos_con_codigo || 0;
+    t.regalos_enviados += r.regalos_enviados || 0; t.tallas += r.tallas || 0; t.mayor += r.mayor || 0; t.letra_grande += r.letra_grande || 0; t.textos_con_codigo += r.textos_con_codigo || 0;
     t.registros.ok += (r.registros || {}).ok || 0; t.registros.fallidos += (r.registros || {}).fallidos || 0;
     t.ayudante.abiertos += (r.ayudante || {}).abiertos || 0;
     for (const k of ["temas", "derivaciones"]) for (const [a, n] of Object.entries((r.ayudante || {})[k] || {})) sumar(t.ayudante[k], a, n);
@@ -88,7 +89,7 @@ export function presentar(t) {
     productos_mas_vistos: top(t.productos), productos_mas_agregados: top(t.agregados), busquedas: top(t.busquedas, 15),
     busquedas_sin_resultado: sinResultado, busquedas_sin_resultado_unicas: otras,
     ayudante: { abiertos: t.ayudante.abiertos, temas: top(t.ayudante.temas, 15), derivaciones: t.ayudante.derivaciones },
-    preguntas_frecuentes: top(t.faq, 15), clics_whatsapp: t.wsp, guia_tallas: t.tallas, consultas_por_mayor: t.mayor,
+    preguntas_frecuentes: top(t.faq, 15), clics_whatsapp: t.wsp, guia_tallas: t.tallas, consultas_por_mayor: t.mayor, letra_grande: t.letra_grande,
     errores_de_la_pagina: top(t.errores, 10), textos_con_codigo: t.textos_con_codigo
   };
 }

@@ -546,3 +546,28 @@ body.ayudante-abierto .ayudante-boton { display: none; }
 .ayudante-nota a { color: inherit; }
 .ayudante-escribir input:disabled { background: var(--rubor); }
 .ayudante-msg .nota-ia.aviso-limite { padding: 8px 10px; border-radius: 10px; background: var(--rubor); color: var(--noche); font-size: .875rem; }
+
+/* Letra más grande (botón "A+" de la portada). Agranda el contenido y las ventanas, no la cabecera ni el asistente. */
+.letra-control { margin: 10px 0 0; }
+.boton-letra { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 14px 6px 6px; border: 2px solid var(--linea); border-radius: 999px; background: #fff; color: var(--noche); font: inherit; font-weight: 700; cursor: pointer; }
+.boton-letra:hover { border-color: var(--frambuesa); }
+.boton-letra:focus-visible { outline: 3px solid var(--frambuesa); outline-offset: 2px; }
+.boton-letra-a { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--frambuesa); color: #fff; font-size: .95rem; }
+.boton-letra[aria-pressed="true"] { border-color: var(--frambuesa); }
+html.letra-grande :is(main, .pie) { zoom: 1.15; }
+html.letra-grande dialog { zoom: 1.15; max-width: min(835px, calc((100vw - 32px) / 1.15)); max-height: calc((100dvh - 32px) / 1.15); }
+@media (max-width: 639px) { html.letra-grande dialog { max-width: calc(100vw / 1.15); max-height: calc(94dvh / 1.15); } }
+/* Celulares angostos (360 px o menos): que la cabecera y los botones largos no hagan mover la página hacia el lado. */
+.acciones .boton { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 380px) {
+  .cabecera .envoltura { gap: 8px; }
+  .cabecera .marca { font-size: 1.7rem; }
+  .cabecera .boton-chico { padding: .45em .8em; }
+}
+@media (max-width: 359px) { html.letra-grande .temporadas button svg { display: none; } }
+.preguntas-filtros button { max-width: 100%; }
+@media (max-width: 340px) {
+  .cabecera .marca { font-size: 1.45rem; }
+  html.letra-grande :is(main, .pie) { zoom: 1.05; }
+}
+.productos > li { min-width: 0; }

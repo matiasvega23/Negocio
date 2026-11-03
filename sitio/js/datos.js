@@ -34,7 +34,8 @@ const FERIADOS = {
 // "enlace" puede ser una sección (#regalo), un producto (?producto=ID) o "wsp:" + mensaje para abrir WhatsApp.
 // Para un período sin día fijo, usar "inicio" y "fin" en vez de "fecha" y "desde" (no muestra cuenta regresiva).
 const FECHAS_COMERCIALES = [
-  { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Envolvemos gratis hasta 3 prendas por pedido, solo si pides desde esta página y hasta el 24 de diciembre.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Navidad", fecha: "2026-12-25", desde: 60, texto: "Regalos para ella, para él y el amigo secreto. Envolvemos gratis hasta 3 prendas por pedido, solo si pides desde esta página y hasta el 24 de diciembre.", boton: "Arma tu regalo", enlace: "#regalo" },
+  { nombre: "Verano", inicio: "2026-12-26", fin: "2027-01-19", texto: "Llegó el verano: vestidos, blusas, pantalones frescos y pijamas de verano.", boton: "Ver ropa de verano", enlace: "#catalogo" },
   { nombre: "el Día de los Enamorados", fecha: "2027-02-14", desde: 25, texto: "Conjuntos de lencería para regalar. Arma tu regalo desde la página y te ayudamos a elegir.", boton: "Arma tu regalo", enlace: "#regalo" },
   { nombre: "Vuelta a clases", inicio: "2027-02-15", fin: "2027-03-15", texto: "Vuelta a clases: pantys escolares y calcetas para el colegio.", boton: "Consultar por WhatsApp", enlace: "wsp:Hola Angie's Secret 👋 Busco pantys escolares. ¿Qué colores y tallas tienen?" },
   { nombre: "el Día de la Madre", fecha: "2027-05-09", desde: 30, texto: "Pijamas y lencería para regalar. Arma tu regalo desde la página y te ayudamos a elegir.", boton: "Arma tu regalo", enlace: "#regalo" },
@@ -48,7 +49,8 @@ const REGALOS = [
   "conjuntos-lenceria", "pijamas-verano", "pijamas-afraneladas", "vestidos-largos", "vestidos-sueltos",
   "vestido-cardigan", "blusas-verano", "sweater-afranelado", "chaleco-botones", "pijamas-hombre",
   "poleron-polar", "poleron-lana", "camisa-polar", "sweater-hombre", "bufanda", "gorros-lana",
-  "calcetas-chiporro", "slip-boxer-hombre", "calcetas", "banano", "ropa-ninos"
+  "calcetas-chiporro", "slip-boxer-hombre", "boxer-milano", "boxer-liso-milano", "slip-milano", "boxer-maxi",
+  "calcetin-vestir-ry-q715b", "tobillera-hombre-408c", "calceta-tenis-color", "calcetas", "banano", "ropa-ninos"
 ];
 
 // Tabla de tallas para la guía "¿Cuál es mi talla?".
@@ -196,10 +198,10 @@ const PRODUCTOS = [
   // Poleras, blusas y vestidos
   { id: "poleras-bambu", n: "Poleras de bambú cuello alto", para: ["mujer"], cat: "tops", t: "invierno", d: "Tela de bambú suave y abrigadora, que no aprieta.", tallas: SXXL, col: ["Negro", "Bordó", "Azul marino", "Gris", "Beige", "Blanco", "Verde militar", "Rosado", "Mora"], fotos: ["w-polera-bambu"], afiches: ["230b70a2"], k: "beatle cuello tortuga" },
   { id: "poleras-cuello-redondo", n: "Poleras térmicas cuello redondo", para: ["mujer"], cat: "tops", t: "invierno", d: "Tela térmica suave. Un básico para combinar con todo.", tallas: SXXL, col: ["Negro", "Bordó", "Azul marino", "Gris", "Beige", "Blanco", "Verde militar", "Rosado", "Mora"], fotos: ["w-polera-redondo"], afiches: ["374a8e3f"], k: "polera termica" },
-  { id: "blusas-verano", n: "Blusas de verano", para: ["mujer"], cat: "tops", t: "verano", d: "Telas livianas con lunares, estampados y detalles con brillo.", fotos: ["s-blusa-lunares", "s-polera-strass", "s-blusa-verde"], k: "blusa polera señora" },
-  { id: "poleras-estampadas", n: "Poleras estampadas", para: ["mujer"], cat: "tops", t: "verano", d: "Algodón fresco con estampados alegres.", fotos: ["s-polera-corazones"], k: "polera juvenil" },
-  { id: "vestidos-largos", n: "Vestidos largos y enteritos", para: ["mujer"], cat: "tops", t: "verano", d: "Estampados florales y telas frescas para el calor.", fotos: ["s-vestidos-largos", "s-vestido-floreado"], k: "vestido enterito jumpsuit" },
-  { id: "vestidos-sueltos", n: "Vestidos sueltos y túnicas", para: ["mujer"], cat: "tops", t: "verano", d: "Cortes holgados, bordados y estampados, algunos con cinturón.", fotos: ["s-vestido-rosado", "s-vestidos-senora", "s-vestido-tiedye"], k: "vestido tunica" },
+  { id: "blusas-verano", n: "Blusas de verano", para: ["mujer"], cat: "tops", t: "verano", d: "Telas livianas con lunares, estampados y detalles con brillo.", fotos: ["s-blusa-lunares", "s-polera-strass", "s-blusa-verde"], k: "blusa polera señora fresco fresca liviano liviana calor verano" },
+  { id: "poleras-estampadas", n: "Poleras estampadas", para: ["mujer"], cat: "tops", t: "verano", d: "Algodón fresco con estampados alegres.", fotos: ["s-polera-corazones"], k: "polera juvenil fresco fresca liviano liviana calor verano" },
+  { id: "vestidos-largos", n: "Vestidos largos y enteritos", para: ["mujer"], cat: "tops", t: "verano", d: "Estampados florales y telas frescas para el calor.", fotos: ["s-vestidos-largos", "s-vestido-floreado"], k: "vestido enterito jumpsuit fresco fresca liviano liviana calor verano" },
+  { id: "vestidos-sueltos", n: "Vestidos sueltos y túnicas", para: ["mujer"], cat: "tops", t: "verano", d: "Cortes holgados, bordados y estampados, algunos con cinturón.", fotos: ["s-vestido-rosado", "s-vestidos-senora", "s-vestido-tiedye"], k: "vestido tunica fresco fresca liviano liviana calor verano" },
   { id: "vestido-cardigan", n: "Vestido con cárdigan", para: ["mujer"], cat: "tops", t: "verano", d: "Vestido estampado con cárdigan liviano para las tardes.", fotos: ["s-vestido-cardigan"], k: "vestido kimono" },
   { id: "camiseta-cuello-alto", n: "Camiseta térmica cuello alto", para: ["hombre"], cat: "tops", t: "invierno", d: "Tela térmica elástica para usar sola o bajo el chaleco.", tallas: SXXL, col: ["Negro", "Blanco", "Azul marino", "Gris jaspeado", "Burdeo"], fotos: ["m-camiseta-cuello"], afiches: ["5694a0de"], k: "beatle polera" },
   { id: "camisa-polar", n: "Camisa de polar cuadrillé", para: ["hombre"], cat: "tops", t: "invierno", d: "Abrigada y suave, con bolsillos en el pecho.", tallas: ["S", "M", "L", "XL", "XXL", "XXXL"], col: ["Rojo", "Azul", "Gris"], fotos: ["m-camisa-polar"], afiches: ["d6254b76"], k: "leñadora franela" },
@@ -219,7 +221,7 @@ const PRODUCTOS = [
   { id: "panty-milano-negra", n: "Panty elasticada Milano negra", para: ["mujer"], cat: "pantalones", t: "todo", d: "Panty elasticada negra, talla única.", tallas: ["Única"], fotos: ["c-panty-milano-negra"], k: "medias", modelo: true },
   { id: "calzas-colores", n: "Calzas lisas de colores", para: ["mujer"], cat: "pantalones", t: "todo", d: "Lisas, en ocho colores.", col: ["Negro", "Verde petróleo", "Gris oscuro", "Gris claro", "Burdeo", "Azul marino", "Azul rey", "Café"], fotos: ["c-calzas-colores"], k: "leggins", modelo: true },
   { id: "calzas-y-shorts", n: "Calzas y shorts lisos", para: ["mujer"], cat: "pantalones", t: "todo", d: "Calzas de pierna recta y acampanada, y shorts.", fotos: ["c-calzas-y-shorts"], k: "leggins short", modelo: true },
-  { id: "short-calza", n: "Short tipo calza", para: ["mujer"], cat: "pantalones", t: "verano", d: "Short elástico de tiro alto.", col: ["Negro", "Arena", "Verde olivo", "Verde petróleo", "Café", "Burdeo", "Azul marino"], fotos: ["c-short-calza"], k: "calza corta", modelo: true },
+  { id: "short-calza", n: "Short tipo calza", para: ["mujer"], cat: "pantalones", t: "verano", d: "Short elástico de tiro alto.", col: ["Negro", "Arena", "Verde olivo", "Verde petróleo", "Café", "Burdeo", "Azul marino"], fotos: ["c-short-calza"], k: "calza corta fresco fresca liviano liviana calor verano", modelo: true },
   { id: "pantalon-pata-recta", n: "Pantalón pata recta", para: ["mujer"], cat: "pantalones", t: "todo", d: "Pata recta estándar, en varios colores.", fotos: ["c-pantalon-pata-recta"], modelo: true },
   { id: "pantalon-prelavado", n: "Pantalón prelavado", para: ["mujer"], cat: "pantalones", t: "todo", d: "Pierna ancha y cintura con cordón.", fotos: ["c-pantalon-prelavado"], k: "jeans ancho", modelo: true },
   { id: "calzas-tiro-alto", n: "Calzas tiro alto", para: ["mujer"], cat: "pantalones", t: "todo", d: "Elásticas y cómodas, con pretina alta que estiliza.", tallas: SXXL, col: ["Azul jaspe", "Azul marino", "Gris jaspe", "Negro"], fotos: ["w-calza-tiro-alto"], afiches: ["487a2e06"], k: "leggins" },
@@ -229,14 +231,14 @@ const PRODUCTOS = [
   { id: "pantalones-forrados", n: "Pantalones y buzos forrados", para: ["mujer"], cat: "pantalones", t: "invierno", d: "Estilo jeans, cargo y buzo, con interior térmico.", col: ["Burdeo", "Café", "Negro", "Gris oscuro"], fotos: ["w-pantalon-forrado"], afiches: ["6e288af9", "eb0bcc63"], k: "buzo jeans cargo" },
   { id: "pantys", n: "Pantys de moda y escolares", para: ["mujer"], cat: "pantalones", t: "todo", d: "Con puntos, malla, lisas elasticadas y de bambú. También pantys escolares: pregunta por colores.", tallas: ["Única", "Especial"], tallasTexto: "Talla única y talla especial", col: ["Negro", "Piel"], fotos: ["w-pantys"], afiches: ["180e3858"], k: "medias colegio escolar" },
   { id: "calzas-deportivas", n: "Calzas deportivas", para: ["mujer"], cat: "pantalones", t: "verano", d: "Textura panal y estampados de colores.", col: ["Turquesa", "Fucsia"], fotos: ["s-calzas-deportivas"], k: "leggins deporte" },
-  { id: "pantalones-verano", n: "Pantalones frescos", para: ["mujer"], cat: "pantalones", t: "verano", d: "Floreados, cuadrillé y cargo, en telas livianas.", fotos: ["s-pantalones"], k: "palazzo" },
+  { id: "pantalones-verano", n: "Pantalones frescos", para: ["mujer"], cat: "pantalones", t: "verano", d: "Floreados, cuadrillé y cargo, en telas livianas.", fotos: ["s-pantalones"], k: "palazzo fresco fresca liviano liviana calor verano" },
   { id: "pantalon-chiporro", n: "Pantalón con chiporro", para: ["hombre"], cat: "pantalones", t: "invierno", d: "Forro de chiporro, cintura con cordón y bolsillos con cierre.", tallas: SXXL, col: ["Negro", "Azul marino"], fotos: ["m-pantalon-chiporro"], afiches: ["43aced90"], k: "buzo" },
   { id: "pantalones-polar-hombre", n: "Pantalones de polar y buzo", para: ["hombre"], cat: "pantalones", t: "invierno", d: "Modelo clásico y deportivo, con cintura elástica.", tallas: SXXL, col: ["Negro", "Azul marino", "Gris jaspeado", "Gris claro"], fotos: ["m-pantalon-polar"], k: "buzo" },
 
   // Pijamas
   { id: "pijamas-afraneladas", n: "Pijamas y camisones afranelados", para: ["mujer"], cat: "pijamas", t: "invierno", d: "Suaves y abrigados, desde la talla M hasta la 60.", tallasTexto: "Desde M hasta talla 60", col: ["Lila floreado", "Azul bordado", "Rosado floreado", "Verde floreado"], fotos: ["w-pijama-afranelada"], afiches: ["6c4a82c1"], k: "camison bata" },
   { id: "pijamas-hombre", n: "Pijamas para hombre", para: ["hombre"], cat: "pijamas", t: "invierno", d: "Algodón suave con botones al cuello.", tallas: SXXL, col: ["Azul", "Gris", "Azul marino"], fotos: ["m-pijama"], afiches: ["ecb0201a"], k: "pijama" },
-  { id: "pijamas-verano", n: "Pijamas y camisones de verano", para: ["mujer"], cat: "pijamas", t: "verano", d: "Telas frescas, con short o en camisón.", col: ["Lila", "Rosado", "Celeste"], fotos: ["s-pijama-verano"], k: "baby doll camison" },
+  { id: "pijamas-verano", n: "Pijamas y camisones de verano", para: ["mujer"], cat: "pijamas", t: "verano", d: "Telas frescas, con short o en camisón.", col: ["Lila", "Rosado", "Celeste"], fotos: ["s-pijama-verano"], k: "baby doll camison fresco fresca liviano liviana calor verano" },
 
   // Calcetas y calcetines
   { id: "tobillera-bambu-sc2190", n: "Tobillera de bambú SC2190", para: ["mujer"], cat: "calcetas", t: "todo", d: "Tobillera de bambú de mujer.", fotos: ["c-tobillera-bambu-sc2190"], k: "soquete", modelo: true },
@@ -488,6 +490,8 @@ const PREGUNTAS_FRECUENTES = [
 
   { id: "horario", cat: "pagina", p: "¿Dónde están y cuál es el horario?", claves: "horario direccion donde ubicacion abren cierran abierto hora",
     r: "Domingo Santa María 3831, Renca. Lunes a sábado de 11:00 a 20:00 y feriados de 11:00 a 14:00. Domingos y feriados irrenunciables, cerrado. [Cómo llegar](https://www.google.com/maps/search/?api=1&query=Domingo+Santa+Mar%C3%ADa+3831%2C+Renca%2C+Chile)" },
+  { id: "fin-de-ano", cat: "pagina", p: "¿Atienden el 24 y el 31 de diciembre?", claves: "24 31 diciembre nochebuena navidad ano nuevo fin de ano atienden abren horario",
+    r: "Sí. El 24 y el 31 de diciembre atendemos en el horario de siempre, de 11:00 a 20:00, salvo que avisemos otro horario en esta página y en Google. El 25 de diciembre y el 1 de enero la tienda está cerrada." },
   { id: "seguridad", cat: "pagina", p: "¿Es seguro usar esta página?", claves: "seguro estafa fraude falso clave codigo sospechoso hackeo",
     r: "Sí. La página no cobra, no pide claves ni datos de tarjetas, y el ayudante no guarda lo que escribes.\n\nAngie's Secret nunca te pedirá por mensaje claves, códigos de verificación de WhatsApp ni datos de tarjetas. Si alguien lo hace en nuestro nombre, no respondas y [avísanos](wspc:Hola 👋 Quiero avisar de un mensaje sospechoso que usa el nombre de Angie's Secret.)." },
   { id: "datos", cat: "pagina", p: "¿Qué hacen con mis datos?", claves: "datos personales privacidad borrar mis datos informacion",

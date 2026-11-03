@@ -29,6 +29,7 @@ function validar(x) {
       return q.length >= 2 ? { e, q, res: ent(x.res, 0, 100), lugar: ["portada", "catalogo", "ayudante"].includes(x.lugar) ? x.lugar : "catalogo" } : null;
     }
     case "regalo_enviar": return { e, n: ent(x.n, 0, 60) };
+    case "letra": return { e, grande: !!x.grande };
     case "registro": return { e, ok: !!x.ok };
     case "ayudante_tema": return { e, tema: corto(x.tema) || "otro" };
     case "ayudante_derivar": return CANALES.has(x.canal) ? { e, canal: x.canal, tema: corto(x.tema) || "otro" } : null;

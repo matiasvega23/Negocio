@@ -83,6 +83,7 @@ const GRUPOS = [
   ["fajas", "faja fajas reductor reductora modelador modeladora cinturilla cinturillas body bodys"],
   ["pijamas", "pijama pijamas piyama piyamas pyjama camison camisones bata batas babydoll dormir"],
   ["calzas", "calza calzas leggins leggings licra lycra"],
+  ["shorts y bermudas", "short shorts bermuda bermudas"],
   ["pantalones y buzos", "pantalon pantalones buzo buzos jogger joggers jeans cargo palazzo"],
   ["poleras", "polera poleras remera remeras camiseta camisetas playera playeras beatle"],
   ["blusas", "blusa blusas"],
@@ -801,6 +802,24 @@ function volarAlPedido(src, desde) {
   ], { duration: 750, easing: "cubic-bezier(.5, 0, .3, 1)" });
   vuelo.onfinish = vuelo.oncancel = () => { v.remove(); pulso(); };
 }
+
+/* ---------- Letra más grande ----------
+   El botón "A+" de la portada agranda el contenido y lo recuerda en este navegador. */
+function aplicarLetra(grande) {
+  document.documentElement.classList.toggle("letra-grande", grande);
+  document.querySelectorAll("[data-letra]").forEach(b => {
+    b.setAttribute("aria-pressed", grande);
+    const t = b.querySelector(".boton-letra-texto"); if (t) t.textContent = grande ? "Letra normal" : "Letra más grande";
+  });
+}
+let letraGrande = false;
+try { letraGrande = localStorage.getItem("angie-letra") === "grande"; } catch (e) {}
+aplicarLetra(letraGrande);
+document.querySelectorAll("[data-letra]").forEach(b => b.addEventListener("click", () => {
+  letraGrande = !letraGrande; aplicarLetra(letraGrande);
+  try { letraGrande ? localStorage.setItem("angie-letra", "grande") : localStorage.removeItem("angie-letra"); } catch (e) {}
+  medir("letra", { grande: letraGrande });
+}));
 
 /* ---------- Fecha de referencia (para revisar otra fecha: ?fecha=2026-12-10) ---------- */
 const fechaHoy = () => /^\d{4}-\d{2}-\d{2}$/.test(params.get("fecha") || "") ? params.get("fecha") : ahora().fecha;
