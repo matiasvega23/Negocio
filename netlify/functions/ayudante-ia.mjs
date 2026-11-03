@@ -135,7 +135,7 @@ function momento(s) {
     .map(([f, t]) => `${f.split("-").reverse().join("/")} (${t === "medio" ? "abre de 11:00 a 14:00" : "cerrado"})`).join(", ");
   const mes = Number(fecha.slice(5, 7));
   const temporada = s.tienda.temporadaForzada || (mes >= 4 && mes <= 8 ? "invierno" : mes >= 10 || mes <= 2 ? "verano" : "cambio de temporada");
-  return `AHORA: hoy es ${nombres[dia]} ${fecha.split("-").reverse().join("/")}, son las ${hhmm} en Chile. La tienda está ${estado}${feriado ? ` (hoy es feriado)` : ""}. Próximos feriados: ${proximos || "ninguno cargado"}. Temporada actual de la tienda: ${temporada}. Si recomiendas una prenda de otra temporada, aclara que hay que preguntar si queda.`;
+  return `AHORA: hoy es ${nombres[dia]} ${fecha.split("-").reverse().join("/")}, son las ${hhmm} en Chile. La tienda está ${estado}${feriado ? ` (hoy es feriado)` : ""}. Próximos feriados: ${proximos || "ninguno cargado"}. Temporada actual de la tienda: ${temporada}. Recomienda primero prendas de esta temporada o de todo el año; si nombras una de otra temporada, aclara que hay que preguntar si queda.`;
 }
 
 /* ---------- Revisar la respuesta antes de mostrarla ---------- */
